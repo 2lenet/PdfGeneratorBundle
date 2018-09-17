@@ -1,0 +1,6 @@
+lle.pdf_generator.:
+        public: true
+        class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
+        arguments: []
+
+Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator: '@lle.pdf_generator'
