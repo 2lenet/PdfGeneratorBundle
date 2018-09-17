@@ -1,0 +1,24 @@
+{
+    "name": "2lenet/pdf-generator-bundle",
+    "type": "symfony-bundle",
+    "description": "Pdf generator",
+    "keywords": ["pdf"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Saenger joris",
+            "email": "joris@2le.net"
+        },
+        {
+            "name": "Castro Guzman Matias",
+            "email": "matias@2le.net"
+        }
+    ],
+    "require": {
+        "php": ">=7.2"
+    },
+    "autoload": {
+        "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
+    },
+    "minimum-stability": "dev"
+}
