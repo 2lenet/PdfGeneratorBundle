@@ -17,7 +17,7 @@
     "require": {
         "php": ">=7.2",
         "zendframework/zend-escaper": "^2.6",
-        "phpoffice/phpword": "dev-master",
+        "phpoffice/phpword": "^0.14",
         "zendframework/zend-stdlib": "^3.2"
     },
     "autoload": {
