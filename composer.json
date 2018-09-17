@@ -16,9 +16,9 @@
     ],
     "require": {
         "php": ">=7.2",
-        "zendframework/zend-escaper": "^2.6@dev",
+        "zendframework/zend-escaper": "^2.6",
         "phpoffice/phpword": "dev-master",
-        "zendframework/zend-stdlib": "^3.2@dev"
+        "zendframework/zend-stdlib": "^3.2"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
