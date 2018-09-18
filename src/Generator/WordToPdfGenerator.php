@@ -6,7 +6,7 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class WordToPdfGenerator
 {
@@ -17,6 +17,6 @@ class WordToPdfGenerator
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $objWriter->save('test.html');
         shell_exec("xvfb-run wkhtmltopdf test.html test");
-        return new Response("Pdf created at Public dir");
+        return new BinaryFileResponse('test');
     }
 }
