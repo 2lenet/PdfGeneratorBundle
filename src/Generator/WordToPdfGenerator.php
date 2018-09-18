@@ -17,6 +17,6 @@ class WordToPdfGenerator
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $objWriter->save('test.html');
         shell_exec("xvfb-run wkhtmltopdf test.html test");
-        return new Response("done");
+        return new Response("Pdf created at Public dir");
     }
 }
