@@ -1,6 +1,6 @@
 <?php
 
-namespace Lle\PdfGenerator\DependencyInjection;
+namespace Lle\PdfGeneratorBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
