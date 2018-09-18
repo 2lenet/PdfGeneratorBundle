@@ -12,10 +12,11 @@ class WordToPdfGenerator
 {
     public static function wordToPdf($source)
     {
+        shell_exec('chown root '.$source);
         $phpWord = \PhpOffice\PhpWord\IOFactory::load($source);
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $objWriter->save('test.html');
-        shell_exec("wkhtmltopdf test.html test");
+        shell_exec("xvfb-run wkhtmltopdf test.html test");
         return new Response("done");
     }
 }
