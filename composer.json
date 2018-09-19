@@ -19,7 +19,8 @@
         "zendframework/zend-escaper": "^2.6",
         "phpoffice/phpword": "v0.15.*",
         "zendframework/zend-stdlib": "^3.2",
-        "spipu/html2pdf": "^5.2"
+        "spipu/html2pdf": "^5.2",
+        "tecnick.com/tcpdf": "^6.2"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
