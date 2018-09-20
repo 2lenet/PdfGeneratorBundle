@@ -6,4 +6,4 @@ services:
 
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
         class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
-        arguments: []
+        arguments: ['@twig']
