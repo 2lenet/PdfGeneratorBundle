@@ -6,4 +6,10 @@ services:
 
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
         class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
-        arguments: ['@twig']
+        arguments: ['@twig', '@lle.pdf.reorganizer_twig_parser']
+        
+    lle.pdf.reorganizer_twig_parser:
+        class:  'Lle\PdfGeneratorBundle\Parsing\ReorganizerTwigParser'
+        arguments: []
+
+    Lle\PdfGeneratorBundle\Parsing\ReorganizerTwigParser: "@lle.pdf.reorganizer_twig_parser"
