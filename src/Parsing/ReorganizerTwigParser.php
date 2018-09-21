@@ -18,7 +18,7 @@ class ReorganizerTwigParser
         foreach ($finder->in('../templates') as $file) {
             $string = $file->getContents();
         }
-        $string = preg_replace('#<p (.+)>{% for (.+) in (.+) %}</p>\n<table>#', "<table>\n<p>{% for $2 in $3 %}</p>" , $string);
+        $string = preg_replace('#</table\>\n<p (.+)>{% for (.+) in (.+) %}</p>\n<table>#', "<p>{% for $2 in $3 %}</p>" , $string);
         $string = preg_replace('#</table>\n<p (.+)>{% endfor %}</p>#', "<p>{% endfor %}</p>\n</table>" , $string);
         file_put_contents ( '../templates/'.$fileName , $string);
         return new BinaryFileResponse('../templates/'.$fileName);
