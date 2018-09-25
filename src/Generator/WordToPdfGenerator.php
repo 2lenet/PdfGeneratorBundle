@@ -46,10 +46,25 @@ class WordToPdfGenerator
         $templateProcessor->saveAs('TemplateTest.docx');
     }
 
+    public function handleVars($params, $docname) {
+        $templateProcessor = new TemplateProcessor($docname);
+        foreach ($params[self::VARS] as $key => $content) {
+            $templateProcessor->setValue($key, $content);
+        }
+        $templateProcessor->saveAs('TemplateTest.docx');
+    }
+
     public function wordToPdf($source, $params)
     {
-        if (array_key_exists(self::ITERABLE,$params)  ) {
+        if (array_key_exists(self::ITERABLE, $params)  ) {
             $this->handleTable($params);
+        }
+        if (array_key_exists(self::VARS, $params)) {
+            if (array_key_exists(self::ITERABLE, $params)) {
+                $this->handleVars($params, 'TemplateTest.docx');
+            } else {
+                $this->handleVars($params, 'Template.docx');
+            }
         }
         $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
