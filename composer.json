@@ -17,6 +17,7 @@
     "require": {
         "php": ">=7.2",
         "zendframework/zend-escaper": "^2.6",
+        "symfony/property-access": "^4.1",
         "phpoffice/phpword": "v0.15.*",
         "zendframework/zend-stdlib": "^3.2",
         "dompdf/dompdf": "^0.8"
