@@ -49,7 +49,13 @@ class WordToPdfGenerator
     public function handleVars($params, $docname) {
         $templateProcessor = new TemplateProcessor($docname);
         foreach ($params[self::VARS] as $key => $content) {
-            $templateProcessor->setValue($key, $content);
+            if (is_array($content) == false) {
+                $templateProcessor->setValue($key, $content);
+            } else {
+                foreach ($content as $k => $c) {
+                    $templateProcessor->setValue($key.'.'.$k, $c);
+                }
+            }
         }
         $templateProcessor->saveAs('TemplateTest.docx');
     }

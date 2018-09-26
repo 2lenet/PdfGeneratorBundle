@@ -12,4 +12,10 @@ services:
         class:  'Lle\PdfGeneratorBundle\Parsing\ReorganizerTwigParser'
         arguments: []
 
+    lle.pdf.obj_accessor:
+        class:  'Lle\PdfGeneratorBundle\ObjAccess\Accessor'
+        arguments: []
+
     Lle\PdfGeneratorBundle\Parsing\ReorganizerTwigParser: "@lle.pdf.reorganizer_twig_parser"
+
+    Lle\PdfGeneratorBundle\ObjAccess\Accessor: "@lle.pdf.obj_accessor"
