@@ -11,6 +11,7 @@ use Lle\PdfGeneratorBundle\Parsing\ReorganizerTwigParser;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Finder\Finder;
 use Dompdf\Dompdf;
+use Lle\PdfGeneratorBundle\ObjAccess\Accessor;
 
 class WordToPdfGenerator
 {
@@ -19,15 +20,16 @@ class WordToPdfGenerator
     const VARS = 'vars';
     private $twig;
     private $reorganizerTwigParser;
+    private $accessor;
 
-    public function __construct(\Twig_Environment $twig, ReorganizerTwigParser $reorganizerTwigParser)
+    public function __construct(\Twig_Environment $twig, ReorganizerTwigParser $reorganizerTwigParser, Accessor $accessor)
     {
         $this->twig = $twig;
         $this->reorganizerTwigParser = $reorganizerTwigParser;
+        $this->accessor = $accessor;
     }
 
-    public function handleTable($params) {
-        $templateProcessor = new TemplateProcessor('Template.docx');
+    public function handleTable($params, $templateProcessor) {
         for ($i = 1; $i <= count($params[self::ITERABLE]); $i++) {
             foreach ($params[self::ITERABLE]['table' . $i][0] as $key => $content) {
                 $clonekey = $key;
@@ -43,13 +45,13 @@ class WordToPdfGenerator
                 }
             }
         }
-        $templateProcessor->saveAs('TemplateTest.docx');
     }
 
-    public function handleVars($params, $docname) {
-        $templateProcessor = new TemplateProcessor($docname);
+    public function handleVars($params, $templateProcessor) {
         foreach ($params[self::VARS] as $key => $content) {
-            if (is_array($content) == false) {
+            if (is_object($content) == true) {
+                $this->accessor->access($key, $content, $templateProcessor);
+            } else if (is_array($content) == false) {
                 $templateProcessor->setValue($key, $content);
             } else {
                 foreach ($content as $k => $c) {
@@ -57,21 +59,21 @@ class WordToPdfGenerator
                 }
             }
         }
-        $templateProcessor->saveAs('TemplateTest.docx');
     }
 
     public function wordToPdf($source, $params)
     {
+        $templateProcessor = new TemplateProcessor('Template.docx');
         if (array_key_exists(self::ITERABLE, $params)  ) {
-            $this->handleTable($params);
+            $this->handleTable($params, $templateProcessor);
         }
         if (array_key_exists(self::VARS, $params)) {
             if (array_key_exists(self::ITERABLE, $params)) {
-                $this->handleVars($params, 'TemplateTest.docx');
-            } else {
-                $this->handleVars($params, 'Template.docx');
+                $this->handleVars($params, $templateProcessor);
             }
         }
+        $templateProcessor->saveAs('TemplateTest.docx');
+        die();
         $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $objWriter->save('../templates/TemplateTest.html');
