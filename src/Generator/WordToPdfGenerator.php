@@ -61,19 +61,7 @@ class WordToPdfGenerator
         }
     }
 
-    public function wordToPdf($source, $params)
-    {
-        $templateProcessor = new TemplateProcessor('Template.docx');
-        if (array_key_exists(self::ITERABLE, $params)  ) {
-            $this->handleTable($params, $templateProcessor);
-        }
-        if (array_key_exists(self::VARS, $params)) {
-            if (array_key_exists(self::ITERABLE, $params)) {
-                $this->handleVars($params, $templateProcessor);
-            }
-        }
-        $templateProcessor->saveAs('TemplateTest.docx');
-        die();
+    public function makePdf() {
         $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
         $objWriter->save('../templates/TemplateTest.html');
@@ -86,6 +74,21 @@ class WordToPdfGenerator
         $dompdf->loadHtml($string);
         $dompdf->render();
         $dompdf->stream();
+    }
+
+    public function wordToPdf($source, $params)
+    {
+        $templateProcessor = new TemplateProcessor('Template.docx');
+        if (array_key_exists(self::ITERABLE, $params)  ) {
+            $this->handleTable($params, $templateProcessor);
+        }
+        if (array_key_exists(self::VARS, $params)) {
+            if (array_key_exists(self::ITERABLE, $params)) {
+                $this->handleVars($params, $templateProcessor);
+            }
+        }
+        $templateProcessor->saveAs('TemplateTest.docx');
+        $this->makePdf();
         return new BinaryFileResponse('~/Téléchargements/document.pdf');
     }
 }
