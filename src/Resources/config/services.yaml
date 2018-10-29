@@ -6,7 +6,7 @@ services:
 
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
         class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
-        arguments: ['@twig', '@lle.pdf.reorganizer_twig_parser', '@lle.pdf.obj_accessor']
+        arguments: ['@twig', '@lle.pdf.obj_accessor']
 
     lle.pdf.obj_accessor:
         class:  'Lle\PdfGeneratorBundle\ObjAccess\Accessor'

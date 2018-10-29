@@ -7,7 +7,6 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Lle\PdfGeneratorBundle\Parsing\ReorganizerTwigParser;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Finder\Finder;
 use Dompdf\Dompdf;
@@ -19,13 +18,11 @@ class WordToPdfGenerator
     const ITERABLE = 'iterable';
     const VARS = 'vars';
     private $twig;
-    private $reorganizerTwigParser;
     private $accessor;
 
     public function __construct(\Twig_Environment $twig, Accessor $accessor)
     {
         $this->twig = $twig;
-        $this->reorganizerTwigParser = $reorganizerTwigParser;
         $this->accessor = $accessor;
     }
 
