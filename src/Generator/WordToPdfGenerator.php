@@ -22,7 +22,7 @@ class WordToPdfGenerator
     private $reorganizerTwigParser;
     private $accessor;
 
-    public function __construct(\Twig_Environment $twig, ReorganizerTwigParser $reorganizerTwigParser, Accessor $accessor)
+    public function __construct(\Twig_Environment $twig, Accessor $accessor)
     {
         $this->twig = $twig;
         $this->reorganizerTwigParser = $reorganizerTwigParser;
