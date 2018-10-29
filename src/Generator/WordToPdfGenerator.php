@@ -61,24 +61,10 @@ class WordToPdfGenerator
         }
     }
 
-    public function makePdf() {
-        $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
-        $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'HTML');
-        $objWriter->save('../templates/TemplateTest.html');
-        $finder = new Finder();
-        $finder->name('TemplateTest.html');
-        foreach ($finder->in('../templates') as $file) {
-            $string = $file->getContents();
-        }
-        $dompdf = new Dompdf();
-        $dompdf->loadHtml($string);
-        $dompdf->render();
-        $dompdf->stream();
-    }
-
     public function wordToPdf($source, $params)
     {
-        $templateProcessor = new TemplateProcessor('Template.docx');
+        $templateProcessor = new TemplateProcessor($source);
+        \PhpOffice\PhpWord\Settings::setPdfRenderer("TCPDF", '../vendor/tecnickcom/tcpdf');
         if (array_key_exists(self::ITERABLE, $params)  ) {
             $this->handleTable($params, $templateProcessor);
         }
@@ -88,7 +74,9 @@ class WordToPdfGenerator
             }
         }
         $templateProcessor->saveAs('TemplateTest.docx');
-        $this->makePdf();
-        return new BinaryFileResponse('~/Téléchargements/document.pdf');
+        $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
+        $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'PDF');
+        $objWriter->save('Invit.pdf');
+        return new BinaryFileResponse('Invit.pdf');
     }
 }
