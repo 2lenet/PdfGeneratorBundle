@@ -58,7 +58,7 @@ class WordToPdfGenerator
         }
     }
 
-    public function wordToPdf($source, $params)
+    public function wordToPdf($source, $params, $savePath)
     {
         $templateProcessor = new TemplateProcessor($source);
         \PhpOffice\PhpWord\Settings::setPdfRenderer("TCPDF", '../vendor/tecnickcom/tcpdf');
@@ -73,7 +73,7 @@ class WordToPdfGenerator
         $templateProcessor->saveAs('TemplateTest.docx');
         $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'PDF');
-        $objWriter->save('Invit.pdf');
-        return new BinaryFileResponse('Invit.pdf');
+        $objWriter->save($savePath);
+        return new BinaryFileResponse($savePath);
     }
 }
