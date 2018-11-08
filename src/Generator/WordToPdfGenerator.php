@@ -12,7 +12,7 @@ use Symfony\Component\Finder\Finder;
 use Dompdf\Dompdf;
 use Lle\PdfGeneratorBundle\ObjAccess\Accessor;
 
-class WordToPdfGenerator
+class WordToPdfGenerator extends AbstractPdfGenerator
 {
 
     const ITERABLE = 'iterable';
@@ -75,5 +75,13 @@ class WordToPdfGenerator
         $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'PDF');
         $objWriter->save($savePath);
         return new BinaryFileResponse($savePath);
+    }
+
+    public function generate($source, $params, $savePath){
+        return $this->wordToPdf($source, $params, $savePath);
+    }
+
+    public function getName(): string{
+        return 'word_to_pdf';
     }
 }

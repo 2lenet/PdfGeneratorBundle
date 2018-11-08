@@ -2,6 +2,7 @@
 
 namespace Lle\PdfGeneratorBundle\DependencyInjection;
 
+use Lle\PdfGeneratorBundle\Generator\PdfGeneratorInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
@@ -22,7 +23,11 @@ class LlePdfGeneratorExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->registerForAutoconfiguration(PdfGeneratorInterface::class)->addTag('lle.pdf.generator');
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services.yaml');
+
+        $container->setParameter( 'lle.pdf.default_generator', $config[ 'default_generator' ] );
+        $container->setParameter( 'lle.pdf.path', $config[ 'path' ] );
     }
 }
