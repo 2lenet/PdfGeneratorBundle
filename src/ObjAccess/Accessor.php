@@ -25,7 +25,6 @@ class Accessor
                 if (is_object($content) == false && is_array($content) == false) {
                     $templateProcessor->setValue($name.'.'.trim($keyExploded[1]), $content);
                 } elseif (is_object($content) == true) {
-                    dd($content);
                     $this->access($name.'.'.trim($keyExploded[1]), $content, $templateProcessor, $iteration + 1);
                 }
             }
