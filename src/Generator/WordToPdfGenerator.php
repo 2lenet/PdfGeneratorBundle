@@ -47,7 +47,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     public function handleVars($params, $templateProcessor) {
         foreach ($params[self::VARS] as $key => $content) {
             if (is_object($content) == true) {
-                $this->accessor->access($key, $content, $templateProcessor);
+                $this->accessor->access($key, $content, $templateProcessor, 0);
             } else if (is_array($content) == false) {
                 $templateProcessor->setValue($key, $content);
             } else {
@@ -78,7 +78,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     }
 
     public function generate($source, $params, $savePath){
-        return $this->wordToPdf($source, $params, $savePath);
+        return $this->wordToPdf($source .'.docx', $params, $savePath);
     }
 
     public function getName(): string{
