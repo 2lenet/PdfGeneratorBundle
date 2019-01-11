@@ -1,1 +1,3 @@
 # PdfGeneratorBundle
+
+Require: unoconv

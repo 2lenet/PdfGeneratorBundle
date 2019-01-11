@@ -38,9 +38,11 @@ class PdfGenerator
         $generator = $this->generators[$model->getType() ?? $this->parameterBag->get('lle.pdf.default_generator')];
         $finder = new Finder();
         $pdf = new \PDFMerger();
+        $path = $this->getPath() . $model->getPath();
+
         foreach($parameters as $parameter){
-                $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-                $generator->generate($this->getPath() . $model->getPath(), [
+                $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
+                $generator->generate($path, [
                     WordToPdfGenerator::ITERABLE => [],
                     WordToPdfGenerator::VARS => $parameter
             ], $tmpFile);
@@ -52,12 +54,13 @@ class PdfGenerator
     public function generateResponse(string $code, array $parameters = []): BinaryFileResponse{
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $pdf = $this->generate($code, $parameters);
+
         $pdf->merge('file', $tmpFile);
         return new BinaryFileResponse($tmpFile);
     }
 
     public function getPath(): string
     {
-        return $this->kernel->getRootDir().'/../'.$this->parameterBag->get('lle.pdf.path').'/';
+        return $this->kernel->getProjectDir().'/'.$this->parameterBag->get('lle.pdf.path').'/';
     }
 }

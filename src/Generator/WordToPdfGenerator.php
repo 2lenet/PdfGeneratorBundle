@@ -61,7 +61,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     public function wordToPdf($source, $params, $savePath)
     {
         $templateProcessor = new TemplateProcessor($source);
-        \PhpOffice\PhpWord\Settings::setPdfRenderer("TCPDF", '../vendor/tecnickcom/tcpdf');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         if (array_key_exists(self::ITERABLE, $params)  ) {
             $this->handleTable($params, $templateProcessor);
         }
@@ -70,15 +70,19 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $this->handleVars($params, $templateProcessor);
             }
         }
-        $templateProcessor->saveAs('TemplateTest.docx');
-        $phpWord = \PhpOffice\PhpWord\IOFactory::load('TemplateTest.docx');
-        $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'PDF');
-        $objWriter->save($savePath);
-        return new BinaryFileResponse($savePath);
+        $templateProcessor->saveAs($tmpFile);
+        shell_exec('unoconv -o '.$savePath.' -f pdf '.$tmpFile);
     }
 
     public function generate($source, $params, $savePath){
-        return $this->wordToPdf($source .'.docx', $params, $savePath);
+        if(!file_exists($source)){
+            if(!file_exists($source.'.docx')) {
+                throw new \Exception($source . '(.docx) not found');
+            }else{
+                $source = $source.'.docx';
+            }
+        }
+        return $this->wordToPdf($source, $params, $savePath);
     }
 
     public function getName(): string{
