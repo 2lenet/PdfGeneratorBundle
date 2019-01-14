@@ -11,6 +11,8 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Finder\Finder;
 use Dompdf\Dompdf;
 use Lle\PdfGeneratorBundle\ObjAccess\Accessor;
+use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Process;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
@@ -71,7 +73,11 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             }
         }
         $templateProcessor->saveAs($tmpFile);
-        shell_exec('unoconv -o '.$savePath.' -f pdf '.$tmpFile);
+        $process = new Process(['unoconv','-o',$savePath, '-f', 'pdf', $tmpFile]);
+        $process->run();
+        if(!$process->isSuccessful()){
+            throw new ProcessFailedException($process);
+        }
     }
 
     public function generate($source, $params, $savePath){
