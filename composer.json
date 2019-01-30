@@ -22,7 +22,8 @@
         "zendframework/zend-stdlib": "^3.2",
         "rguedes/pdfmerger": "^1.0.4",
         "dompdf/dompdf": "^0.8",
-        "tecnickcom/tcpdf": "*"
+        "tecnickcom/tcpdf": "*",
+        "setasign/fpdi-fpdf": "^2.0"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
