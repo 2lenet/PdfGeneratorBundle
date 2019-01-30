@@ -23,7 +23,8 @@
         "rguedes/pdfmerger": "^1.0.4",
         "dompdf/dompdf": "^0.8",
         "tecnickcom/tcpdf": "*",
-        "setasign/fpdi-fpdf": "^2.0"
+        "setasign/fpdi-fpdf": "^2.0",
+        "setasign/tfpdf":"1.25"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
