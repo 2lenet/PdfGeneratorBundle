@@ -9,6 +9,9 @@ services:
         arguments: ['@twig', '@lle.pdf.obj_accessor']
         tags: ['lle.pdf.generator']
 
+    Lle\PdfGeneratorBundle\Generator\TcpdfGenerator:
+        tags: ['lle.pdf.generator']
+
     Lle\PdfGeneratorBundle\Generator\PdfGenerator:
         arguments: ["@doctrine.orm.default_entity_manager",  '@kernel','@parameter_bag', !tagged lle.pdf.generator]
 

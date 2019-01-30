@@ -29,16 +29,15 @@ class PdfGenerator
         }
     }
 
-    public function generate(string $code, array $parameters = []): \PDFMerger
+    public function generate(string $code, iterable $parameters = []): \PDFMerger
     {
         $model = $this->em->getRepository(PdfModel::class)->findOneBy(['code' => $code]);
         if ($model == null) {
             throw new HttpException("no model found");
         }
         $generator = $this->generators[$model->getType() ?? $this->parameterBag->get('lle.pdf.default_generator')];
-        $finder = new Finder();
         $pdf = new \PDFMerger();
-        $path = $this->getPath() . $model->getPath();
+        $path = $generator->getModelPath($this->getPath(),$model->getPath());
 
         foreach($parameters as $parameter){
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
@@ -51,7 +50,7 @@ class PdfGenerator
         return $pdf;
     }
 
-    public function generateResponse(string $code, array $parameters = []): BinaryFileResponse{
+    public function generateResponse(string $code, iterable $parameters = []): BinaryFileResponse{
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $pdf = $this->generate($code, $parameters);
 
