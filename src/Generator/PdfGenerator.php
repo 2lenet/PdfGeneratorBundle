@@ -33,7 +33,7 @@ class PdfGenerator
     {
         $model = $this->em->getRepository(PdfModel::class)->findOneBy(['code' => $code]);
         if ($model == null) {
-            throw new HttpException("no model found");
+            throw new HttpException(500,"no model found");
         }
         $generator = $this->generators[$model->getType() ?? $this->parameterBag->get('lle.pdf.default_generator')];
         $pdf = new \PDFMerger();
