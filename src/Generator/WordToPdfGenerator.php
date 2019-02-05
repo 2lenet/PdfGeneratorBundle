@@ -27,12 +27,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     }
 
     private function handleTable($params, $templateProcessor) {
-        for ($i = 1; $i <= count($params[self::ITERABLE]); $i++) {
-            foreach ($params[self::ITERABLE]['table' . $i][0] as $key => $content) {
+        for ($i = 1; $i <= count($params[PdfGenerator::ITERABLE]); $i++) {
+            foreach ($params[PdfGenerator::ITERABLE]['table' . $i][0] as $key => $content) {
                 $clonekey = $key;
             }
-            $templateProcessor->cloneRow($clonekey, count($params[self::ITERABLE]['table' . $i]));
-            foreach ($params[self::ITERABLE] as $table) {
+            $templateProcessor->cloneRow($clonekey, count($params[PdfGenerator::ITERABLE]['table' . $i]));
+            foreach ($params[PdfGenerator::ITERABLE] as $table) {
                 $k = 0;
                 foreach($table as $var) {
                     $k++;
@@ -45,7 +45,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     }
 
     private function handleVars($params, $templateProcessor) {
-        foreach ($params[self::VARS] as $key => $content) {
+        foreach ($params[PdfGenerator::VARS] as $key => $content) {
             if (is_object($content) == true) {
                 $this->accessor->access($key, $content, $templateProcessor, 0);
             } else if (is_array($content) == false) {
@@ -62,11 +62,11 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     {
         $templateProcessor = new TemplateProcessor($source);
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-        if (array_key_exists(self::ITERABLE, $params)  ) {
+        if (array_key_exists(PdfGenerator::ITERABLE, $params)  ) {
             $this->handleTable($params, $templateProcessor);
         }
-        if (array_key_exists(self::VARS, $params)) {
-            if (array_key_exists(self::ITERABLE, $params)) {
+        if (array_key_exists(PdfGenerator::VARS, $params)) {
+            if (array_key_exists(PdfGenerator::ITERABLE, $params)) {
                 $this->handleVars($params, $templateProcessor);
             }
         }
