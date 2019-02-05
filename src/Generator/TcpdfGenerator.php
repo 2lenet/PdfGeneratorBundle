@@ -22,7 +22,7 @@ class TcpdfGenerator extends AbstractPdfGenerator
 
     protected $pdfPath;
 
-    public function generate($source, $params, $savePath){
+    public function generate(string $source, iterable $params, string $savePath):void{
         $reflex = new \ReflectionClass($source);
         $pdf = $reflex->newInstance();
         if ($pdf instanceof Pdf) {
@@ -31,19 +31,18 @@ class TcpdfGenerator extends AbstractPdfGenerator
             $pdf->initiate();
             $pdf->generate();
             $pdf->setTitle($pdf->title());
-            $this->pdf = $pdf;
         } else {
-            throw new \Exception('PDF GENERATOR ERROR: '.$source.' n\'est pas une class PDF');
+            throw new \Exception('PDF GENERATOR ERROR: ressource '.$source.' n\'est pas une class PDF');
         }
         $pdf->output($savePath, 'F');
     }
 
-    public function getModelPath(string $pdfPath, string $modelPath): string{
+    public function getRessource(string $pdfPath, string $modelRessource): string{
         $this->pdfPath = $pdfPath;
-        return $modelPath;
+        return $modelRessource;
     }
 
-    public function getName(): string{
+    public static function getName(): string{
         return 'tcpdf';
     }
 }

@@ -14,6 +14,9 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 class PdfGenerator
 {
 
+    const ITERABLE = 'iterable';
+    const VARS = 'vars';
+
     private $em;
     private $parameterBag;
     private $kerne;
@@ -29,31 +32,52 @@ class PdfGenerator
         }
     }
 
-    public function generate(string $code, iterable $parameters = []): \PDFMerger
-    {
-        $model = $this->em->getRepository(PdfModel::class)->findOneBy(['code' => $code]);
-        if ($model == null) {
-            throw new HttpException("no model found");
+    private function generateByModel(PdfModel $model, iterable $parameters):\PDFMerger{
+        if(count($parameters) === 0){
+            $parameters[] = [];
         }
-        $generator = $this->generators[$model->getType() ?? $this->parameterBag->get('lle.pdf.default_generator')];
+        $generator = $this->generators[$model->getType() ?? $this->getDefaultgenerator()];
         $pdf = new \PDFMerger();
-        $path = $generator->getModelPath($this->getPath(),$model->getPath());
+        $path = $generator->getRessource($this->getPath(),$model->getPath());
 
         foreach($parameters as $parameter){
-                $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
-                $generator->generate($path, [
-                    WordToPdfGenerator::ITERABLE => [],
-                    WordToPdfGenerator::VARS => $parameter
+            $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
+            $generator->generate($path, [
+                static::ITERABLE => [],
+                static::VARS => $parameter
             ], $tmpFile);
             $pdf->addPDF($tmpFile, "all");
         }
         return $pdf;
     }
 
-    public function generateResponse(string $code, iterable $parameters = []): BinaryFileResponse{
-        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-        $pdf = $this->generate($code, $parameters);
+    public function generateByRessource(string $type, string $ressource, iterable $parameters = []):\PDFMerger{
+        $model = new PdfModel();
+        $model->setType($type);
+        $model->setPath($ressource);
+        return $this->generateByModel($model, $parameters);
+    }
 
+    public function generate(string $code, iterable $parameters = []): \PDFMerger
+    {
+        $model = $this->em->getRepository(PdfModel::class)->findOneBy(['code' => $code]);
+        if ($model == null) {
+            throw new \Exception("no model found");
+        }
+        return $this->generateByModel($model, $parameters);
+
+    }
+
+    public function generateByRessourceResponse(string $type, string $ressource, iterable $parameters = []): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters));
+    }
+
+    public function generateResponse(string $code, iterable $parameters = []): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generate($code, $parameters));
+    }
+
+    private function getPdfToResponse(\PDFMerger $pdf): BinaryFileResponse{
+        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $pdf->merge('file', $tmpFile);
         return new BinaryFileResponse($tmpFile);
     }
@@ -61,5 +85,13 @@ class PdfGenerator
     public function getPath(): string
     {
         return $this->kernel->getProjectDir().'/'.$this->parameterBag->get('lle.pdf.path').'/';
+    }
+
+    public function getDefaultGenerator():string{
+        return $this->parameterBag->get('lle.pdf.default_generator');
+    }
+
+    public function getTypes(): array{
+        return array_keys($this->generators);
     }
 }

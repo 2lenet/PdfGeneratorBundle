@@ -4,6 +4,9 @@ services:
         autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
         public: false
 
+    Lle\PdfGeneratorBundle\Command\CreateModelCommand:
+        arguments: ["@doctrine.orm.default_entity_manager", "@Lle\\PdfGeneratorBundle\\Generator\\PdfGenerator"]
+
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
         class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
         arguments: ['@twig', '@lle.pdf.obj_accessor']

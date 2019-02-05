@@ -4,12 +4,12 @@ namespace Lle\PdfGeneratorBundle\Generator;
 
 abstract class AbstractPdfGenerator implements PdfGeneratorInterface {
 
-    public function getName(): string{
+    public static function getName(): string{
         return static::class;
     }
 
 
-    public function getModelPath(string $pdfPath, string $modelPath): string{
-        return $pdfPath.$modelPath;
+    public function getRessource(string $pdfPath, string $modelRessource): string{
+        return $pdfPath.$modelRessource;
     }
 }

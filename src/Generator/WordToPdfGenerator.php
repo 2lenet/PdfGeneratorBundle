@@ -17,8 +17,6 @@ use Symfony\Component\Process\Process;
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
 
-    const ITERABLE = 'iterable';
-    const VARS = 'vars';
     private $twig;
     private $accessor;
 
@@ -28,7 +26,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $this->accessor = $accessor;
     }
 
-    public function handleTable($params, $templateProcessor) {
+    private function handleTable($params, $templateProcessor) {
         for ($i = 1; $i <= count($params[self::ITERABLE]); $i++) {
             foreach ($params[self::ITERABLE]['table' . $i][0] as $key => $content) {
                 $clonekey = $key;
@@ -46,7 +44,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    public function handleVars($params, $templateProcessor) {
+    private function handleVars($params, $templateProcessor) {
         foreach ($params[self::VARS] as $key => $content) {
             if (is_object($content) == true) {
                 $this->accessor->access($key, $content, $templateProcessor, 0);
@@ -60,7 +58,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    public function wordToPdf($source, $params, $savePath)
+    private function wordToPdf($source, $params, $savePath)
     {
         $templateProcessor = new TemplateProcessor($source);
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
@@ -80,7 +78,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    public function generate($source, $params, $savePath){
+    public function generate(string $source, iterable $params, string $savePath):void{
         if(!file_exists($source)){
             if(!file_exists($source.'.docx')) {
                 throw new \Exception($source . '(.docx) not found');
@@ -88,10 +86,10 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $source = $source.'.docx';
             }
         }
-        return $this->wordToPdf($source, $params, $savePath);
+        $this->wordToPdf($source, $params, $savePath);
     }
 
-    public function getName(): string{
+    public static function getName(): string{
         return 'word_to_pdf';
     }
 }
