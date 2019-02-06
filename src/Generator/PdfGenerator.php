@@ -76,18 +76,30 @@ class PdfGenerator
         return $signature->signe($pdfMerger);
     }
 
-    public function generateByRessourceResponse(string $type, string $ressource, iterable $parameters = [], ?Signature $signature = null): BinaryFileResponse{
-        return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signature);
+    public function signeTcpdfFpdi(TcpdfFpdi $pdf, Signature $signature): TcpdfFpdi{
+        return $signature->signeTcpdfFpdi($pdf);
     }
 
-    public function generateResponse(string $code, iterable $parameters = [], ?Signature $signature = null): BinaryFileResponse{
-        return $this->getPdfToResponse($this->generate($code, $parameters), $signature);
+    public function signes(PdfMerger $pdfMerger, array $signatures): TcpdfFpdi{
+        $pdf = $pdfMerger->toTcpdfFpdi();
+        foreach($signatures as $signature){
+            $pdf = $this->signeTcpdfFpdi($pdf, $signature);
+        }
+        return $pdf;
     }
 
-    private function getPdfToResponse(PDFMerger $pdf, ?Signature $signature = null): BinaryFileResponse{
+    public function generateByRessourceResponse(string $type, string $ressource, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signatures);
+    }
+
+    public function generateResponse(string $code, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generate($code, $parameters), $signatures);
+    }
+
+    private function getPdfToResponse(PDFMerger $pdf, ?array $signatures = []): BinaryFileResponse{
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-        if($signature){
-            $pdf = $this->signe($pdf, $signature);
+        if(count($signatures)){
+            $pdf = $this->signes($pdf, $signatures);
             $pdf->Output($tmpFile,'F');
         }else{
             $pdf->merge('file', $tmpFile);

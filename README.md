@@ -251,12 +251,42 @@ $info = [
 ];
 $signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info);
 ```
+
+You can add an draw with signature
+```php
+<?php
+/*...*/
+$picture = 'signature.png';
+$signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info, $pictur);
+//or
+$pos = [
+    'w' => 40, //width default 40
+    'h' => 20, //heght default 20
+    'x' => 10, //x default pageWidth - w
+    'y' => 10, //y default pageHeight - (h*2+5)
+    'p' => 1 //page default last page
+];
+$signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info, $pictur, $pos);
+```
+You can also add segment or points for create the signature picture
+```php
+<?php
+$signature = new Signature($certif, $password, $info);
+
+$signature->setSegments([[$x1,$y1],[$x2,$y2]], $pos);
+//or
+$signature->setPoints([$x1,$y1,$x2,$y2], $pos);
+//or
+$signature->setImage('signe.png', $pos);
+
+$signature->setPosition($pos); // you can use it also
+```
 ### Pdf response
 ```php
 <?php
-return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.doc', $data, $signature);
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.doc', $data, [$signature]);
 //or
-return $generator->generateResponse('MYMODELCODE', $data, $signature);
+return $generator->generateResponse('MYMODELCODE', $data, [$signature]);
 ```
 
 ### Pdf Merger
@@ -267,18 +297,35 @@ The pdfMerge is the class of instance return by generator
 $pdfMerger = $generator->generateByRessource(WordToPdfGenerator::getName(), 'test.doc', $data);
 //or
 $pdfMerger = $generator->generate('MYMODELCODE', $data);
-$pdf = $generator->sign($pdfMerger, $signature); //return an TcpdfFpdi
+$pdf = $generator->signes($pdfMerger, [$signature]); //return an TcpdfFpdi (signe($pdfMerger, $signature) exist also)
 $pdf->Output('My pdf', 'D'); // return a signed pdf
 $pdfMerger->merge('My pdf', 'D'); // return a unsigned pdf
 ```
 You can't signed a pdfMerger you have to pass by TcpdfFpdi. An PdfMerger instance can never be signed
 
-You can also use directly the signature instance for sign a Pdfmerger
+You can continue to sign an TcpdfFpdi with $generator->signeTcpdfFpdi($pdf, $signature)
+
+You can also use directly the signature instance for sign a Pdfmerger or TcpdfFpdi
 ```php
 <?php
 $pdfMerger = $generator->generate('MYMODELCODE', $data);
 $signature->signe($pdfMerger)->Output('My pdf', 'D');
 ```
+
+or
+
+```php
+<?php
+$pdfMerger = $generator->generate('MYMODELCODE', $data);
+$pdf = $pdfMerger->toTcpdfFpdi();
+$pdf = $signature->signeTcpdfFpdi($pdf);
+$pdf = $signature2->signeTcpdfFpdi($pdf);
+$pdf->Output('My pdf', 'D');
+```
+
+You can't use several sign with PdfMerger
+
+
 
 ## Future features
 The iterable data for word_to_pdf not work for the moment.
