@@ -4,12 +4,15 @@ namespace Lle\PdfGeneratorBundle\Generator;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Entity\PdfModel;
+use Lle\PdfGeneratorBundle\Lib\Signature;
+use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 
 class PdfGenerator
 {
@@ -32,13 +35,14 @@ class PdfGenerator
         }
     }
 
-    private function generateByModel(PdfModel $model, iterable $parameters):\PDFMerger{
+    private function generateByModel(PdfModel $model, iterable $parameters):PDFMerger{
         if(count($parameters) === 0){
             $parameters[] = [];
         }
         $generator = $this->generators[$model->getType() ?? $this->getDefaultgenerator()];
-        $pdf = new \PDFMerger();
-        $path = $generator->getRessource($this->getPath(),$model->getPath());
+        $generator->setPdfPath($this->getPath());
+        $pdf = new PDFMerger();
+        $path = $generator->getRessource($model->getPath());
 
         foreach($parameters as $parameter){
             $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
@@ -51,14 +55,14 @@ class PdfGenerator
         return $pdf;
     }
 
-    public function generateByRessource(string $type, string $ressource, iterable $parameters = []):\PDFMerger{
+    public function generateByRessource(string $type, string $ressource, iterable $parameters = []):PDFMerger{
         $model = new PdfModel();
         $model->setType($type);
         $model->setPath($ressource);
         return $this->generateByModel($model, $parameters);
     }
 
-    public function generate(string $code, iterable $parameters = []): \PDFMerger
+    public function generate(string $code, iterable $parameters = []): PDFMerger
     {
         $model = $this->em->getRepository(PdfModel::class)->findOneBy(['code' => $code]);
         if ($model == null) {
@@ -68,17 +72,26 @@ class PdfGenerator
 
     }
 
-    public function generateByRessourceResponse(string $type, string $ressource, iterable $parameters = []): BinaryFileResponse{
-        return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters));
+    public function signe(PdfMerger $pdfMerger, Signature $signature): TcpdfFpdi{
+        return $signature->signe($pdfMerger);
     }
 
-    public function generateResponse(string $code, iterable $parameters = []): BinaryFileResponse{
-        return $this->getPdfToResponse($this->generate($code, $parameters));
+    public function generateByRessourceResponse(string $type, string $ressource, iterable $parameters = [], ?Signature $signature = null): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signature);
     }
 
-    private function getPdfToResponse(\PDFMerger $pdf): BinaryFileResponse{
+    public function generateResponse(string $code, iterable $parameters = [], ?Signature $signature = null): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generate($code, $parameters), $signature);
+    }
+
+    private function getPdfToResponse(PDFMerger $pdf, ?Signature $signature = null): BinaryFileResponse{
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-        $pdf->merge('file', $tmpFile);
+        if($signature){
+            $pdf = $this->signe($pdf, $signature);
+            $pdf->Output($tmpFile,'F');
+        }else{
+            $pdf->merge('file', $tmpFile);
+        }
         return new BinaryFileResponse($tmpFile);
     }
 

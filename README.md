@@ -27,10 +27,29 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
     foreach($userRepository->findAll() as $user){
         $data[] = ['name' => $user->getName()];
     }
-    return $generator->generateResponse('INVITATION', $data);
+    //create an response by Bdd
+    return $generator->generateResponse('MYMODELCODE', $data);
     //or
+    //create an PdfMerger by Bdd
+    $generator->generate('MYMODELCODE', $data)->merge('pdf.pdf','F');
+    //or
+    //create an PdfMerger by ressource
     return $generator->generateByRessourceResponse(TcpdfGenerator::getName(), MyTcpdfClass::class, $data);
+    //or
+    //create an response by ressource
+    $generator->generateByRessource(TcpdfGenerator::getName(), MyTcpdfClass::class, $data)->merge('pdf.pdf','F');
 }
+```
+
+You can create an instance of TcpdfFpdi (Tcpdf and Fpdi) with the PdfMerger
+```php
+<?php
+$pdfMerger = $generator->generate('MYMODELCODE', $data)->merge('pdf.pdf','F');
+$pdf = $pdfMerger->toTcpdfFpdi();
+$pdf->addPage('P');
+$pdf->writeHTML('Hello', true, 0, true, 0);
+$pdf->Output('file.pdf', 'F');
+return new ResponseBinaryFile('file.pdf');
 ```
 
 ## Use with bdd
@@ -209,6 +228,57 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 }
 ```
 https://phpword.readthedocs.io/en/latest/templates-processing.html
+
+##Sign pdf
+
+Use the Lle\PdfGeneratorBundle\Lib\Signature class you can sign an pdf response or an PdfMerge
+
+### Cretae the signature
+
+```
+openssl req -x509 -nodes -days 365000 -newkey rsa:1024 -keyout tcpdf.crt -out tcpdf.crt
+openssl pkcs12 -export -in tcpdf.crt -out tcpdf.p12
+```
+
+```php
+<?php
+$password = '***';
+$info = [
+    'Name' => 'name',
+    'Location' => 'location',
+    'Reason' => 'reason',
+    'ContactInfo' => 'url',
+];
+$signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info);
+```
+### Pdf response
+```php
+<?php
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.doc', $data, $signature);
+//or
+return $generator->generateResponse('MYMODELCODE', $data, $signature);
+```
+
+### Pdf Merger
+
+The pdfMerge is the class of instance return by generator
+```php
+<?php
+$pdfMerger = $generator->generateByRessource(WordToPdfGenerator::getName(), 'test.doc', $data);
+//or
+$pdfMerger = $generator->generate('MYMODELCODE', $data);
+$pdf = $generator->sign($pdfMerger, $signature); //return an TcpdfFpdi
+$pdf->Output('My pdf', 'D'); // return a signed pdf
+$pdfMerger->merge('My pdf', 'D'); // return a unsigned pdf
+```
+You can't signed a pdfMerger you have to pass by TcpdfFpdi. An PdfMerger instance can never be signed
+
+You can also use directly the signature instance for sign a Pdfmerger
+```php
+<?php
+$pdfMerger = $generator->generate('MYMODELCODE', $data);
+$signature->signe($pdfMerger)->Output('My pdf', 'D');
+```
 
 ## Future features
 The iterable data for word_to_pdf not work for the moment.

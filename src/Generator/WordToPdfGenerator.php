@@ -2,6 +2,7 @@
 
 namespace Lle\PdfGeneratorBundle\Generator;
 
+use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpFoundation\Session\Attribute\NamespacedAttributeBag;
@@ -13,17 +14,18 @@ use Dompdf\Dompdf;
 use Lle\PdfGeneratorBundle\ObjAccess\Accessor;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
 
     private $twig;
-    private $accessor;
+    private $propertyAccess;
 
-    public function __construct(\Twig_Environment $twig, Accessor $accessor)
+    public function __construct(\Twig_Environment $twig)
     {
         $this->twig = $twig;
-        $this->accessor = $accessor;
     }
 
     private function handleTable($params, $templateProcessor) {
@@ -44,16 +46,13 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    private function handleVars($params, $templateProcessor) {
-        foreach ($params[PdfGenerator::VARS] as $key => $content) {
-            if (is_object($content) == true) {
-                $this->accessor->access($key, $content, $templateProcessor, 0);
-            } else if (is_array($content) == false) {
-                $templateProcessor->setValue($key, $content);
-            } else {
-                foreach ($content as $k => $c) {
-                    $templateProcessor->setValue($key.'.'.$k, $c);
-                }
+    private function handleVars($params, TemplateProcessor $templateProcessor) {
+        foreach($templateProcessor->getVariables() as $variable){
+            try {
+                $v = $this->twig->createTemplate('{{' . $variable . '}}')->render($params[PdfGenerator::VARS]);
+                $templateProcessor->setValue($variable, $v);
+            }catch(\Exception $e){
+                $templateProcessor->setValue($variable, $params[PdfGenerator::VARS][$variable] ?? $variable);
             }
         }
     }
@@ -75,7 +74,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $process->run();
         if(!$process->isSuccessful()){
             throw new ProcessFailedException($process);
-        }
+        };
     }
 
     public function generate(string $source, iterable $params, string $savePath):void{

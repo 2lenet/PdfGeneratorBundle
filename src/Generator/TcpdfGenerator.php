@@ -20,7 +20,7 @@ use Symfony\Component\Process\Process;
 class TcpdfGenerator extends AbstractPdfGenerator
 {
 
-    protected $pdfPath;
+
 
     public function generate(string $source, iterable $params, string $savePath):void{
         $reflex = new \ReflectionClass($source);
@@ -31,14 +31,14 @@ class TcpdfGenerator extends AbstractPdfGenerator
             $pdf->initiate();
             $pdf->generate();
             $pdf->setTitle($pdf->title());
+            $pdf->setSignature($this->pdfPath.'/tcpdf.crt', $this->pdfPath.'/tcpdf.crt', 'pdfpassword', ['Name'=>'Tcpdf', 'Location' => 'Office', 'Reason' => 'test', 'ContactInfo' => 'http://2le.net']);
         } else {
             throw new \Exception('PDF GENERATOR ERROR: ressource '.$source.' n\'est pas une class PDF');
         }
         $pdf->output($savePath, 'F');
     }
 
-    public function getRessource(string $pdfPath, string $modelRessource): string{
-        $this->pdfPath = $pdfPath;
+    public function getRessource(string $modelRessource): string{
         return $modelRessource;
     }
 
