@@ -9,7 +9,7 @@ services:
 
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
         class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
-        arguments: ['@twig']
+        arguments: [ '@property_accessor']
         tags: ['lle.pdf.generator']
 
     Lle\PdfGeneratorBundle\Generator\TcpdfGenerator:
@@ -17,9 +17,3 @@ services:
 
     Lle\PdfGeneratorBundle\Generator\PdfGenerator:
         arguments: ["@doctrine.orm.default_entity_manager",  '@kernel','@parameter_bag', !tagged lle.pdf.generator]
-
-    lle.pdf.obj_accessor:
-        class:  'Lle\PdfGeneratorBundle\ObjAccess\Accessor'
-        arguments: []
-
-    Lle\PdfGeneratorBundle\ObjAccess\Accessor: "@lle.pdf.obj_accessor"

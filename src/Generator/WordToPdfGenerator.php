@@ -2,6 +2,7 @@
 
 namespace Lle\PdfGeneratorBundle\Generator;
 
+use Lle\PdfGeneratorBundle\Lib\PdfIterable;
 use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
@@ -20,61 +21,54 @@ use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
 
-    private $twig;
     private $propertyAccess;
 
-    public function __construct(\Twig_Environment $twig)
+    public function __construct(PropertyAccessor $accessor)
     {
-        $this->twig = $twig;
+        $this->propertyAccess = $accessor;
     }
 
-    private function handleTable($params, $templateProcessor) {
-        for ($i = 1; $i <= count($params[PdfGenerator::ITERABLE]); $i++) {
-            foreach ($params[PdfGenerator::ITERABLE]['table' . $i][0] as $key => $content) {
-                $clonekey = $key;
-            }
-            $templateProcessor->cloneRow($clonekey, count($params[PdfGenerator::ITERABLE]['table' . $i]));
-            foreach ($params[PdfGenerator::ITERABLE] as $table) {
-                $k = 0;
-                foreach($table as $var) {
-                    $k++;
-                    foreach ($var as $key => $content) {
-                        $templateProcessor->setValue($key . '#' . $k, $content);
-                    }
-                }
-            }
-        }
-    }
-
-    private function handleVars($params, TemplateProcessor $templateProcessor) {
-        foreach($templateProcessor->getVariables() as $variable){
+    private function compile(iterable $params, TemplateProcessor $templateProcessor)
+    {
+        $duplicate = [];
+        foreach ($templateProcessor->getVariables() as $variable) {
             try {
-                $v = $this->twig->createTemplate('{{' . $variable . '}}')->render($params[PdfGenerator::VARS]);
-                $templateProcessor->setValue($variable, $v);
-            }catch(\Exception $e){
-                $templateProcessor->setValue($variable, $params[PdfGenerator::VARS][$variable] ?? $variable);
+                $exp = explode('.', $variable, 2);
+                $root = '[' . $exp[0] . ']';
+                $var = $exp[1] ?? null;
+                if (isset($params[$exp[0]]) && $params[$exp[0]] instanceof PdfIterable && $var) {
+                    $iterator = $params[$exp[0]];
+                    if (!isset($duplicate[$exp[0]])) {
+                        $templateProcessor->cloneRow($variable, count($iterator));
+                        $duplicate[$exp[0]] = true;
+                    }
+                    $i = 0;
+                    foreach ($iterator as $item) {
+                        $i++;
+                        $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, $this->propertyAccess->getValue($item, $var));
+                    }
+                } else {
+                    $varPath = ($var) ? $root . '.' . $var : $root;
+                    $value = $this->propertyAccess->getValue($params, $varPath);
+                    $templateProcessor->setValue($variable, $value);
+                }
+            } catch (\Exception $e) {
+                $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
             }
         }
     }
 
-    private function wordToPdf($source, $params, $savePath)
+    private function wordToPdf(string $source, iterable $params, string $savePath)
     {
         $templateProcessor = new TemplateProcessor($source);
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-        if (array_key_exists(PdfGenerator::ITERABLE, $params)  ) {
-            $this->handleTable($params, $templateProcessor);
-        }
-        if (array_key_exists(PdfGenerator::VARS, $params)) {
-            if (array_key_exists(PdfGenerator::ITERABLE, $params)) {
-                $this->handleVars($params, $templateProcessor);
-            }
-        }
+        $this->compile($params, $templateProcessor);
         $templateProcessor->saveAs($tmpFile);
         $process = new Process(['unoconv','-o',$savePath, '-f', 'pdf', $tmpFile]);
         $process->run();
         if(!$process->isSuccessful()){
             throw new ProcessFailedException($process);
-        };
+        }
     }
 
     public function generate(string $source, iterable $params, string $savePath):void{

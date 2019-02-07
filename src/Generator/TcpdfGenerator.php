@@ -26,12 +26,11 @@ class TcpdfGenerator extends AbstractPdfGenerator
         $reflex = new \ReflectionClass($source);
         $pdf = $reflex->newInstance();
         if ($pdf instanceof Pdf) {
-            $pdf->setData($params['vars']);
+            $pdf->setData($params);
             $pdf->setRootPath($this->pdfPath);
             $pdf->initiate();
             $pdf->generate();
             $pdf->setTitle($pdf->title());
-            $pdf->setSignature($this->pdfPath.'/tcpdf.crt', $this->pdfPath.'/tcpdf.crt', 'pdfpassword', ['Name'=>'Tcpdf', 'Location' => 'Office', 'Reason' => 'test', 'ContactInfo' => 'http://2le.net']);
         } else {
             throw new \Exception('PDF GENERATOR ERROR: ressource '.$source.' n\'est pas une class PDF');
         }

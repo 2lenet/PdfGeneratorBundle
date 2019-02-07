@@ -327,26 +327,43 @@ You can't use several sign with PdfMerger
 
 
 
-## Future features
-The iterable data for word_to_pdf not work for the moment.
+## Future features (with word_to_pdf)
+create a .doc file and create 2 table (1 line , 2 cells)
 
-you can JUST test it directly in Lle\PdfGeneratorBundle\Generator\PdfGenerator l 46 
+- first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}
+- second table cells 1 write ${users.[nom], cells 2 write ${users.[adresse][rue]}
 
-static::ITERABLE => []
-
-replace by
+save it with myiterable.doc
+use the Lle\PdfGeneratorBundle\Lib\PdfIterable class
 
 ```php
-static::ITERABLE => [
-   'table1' => [['name' => 'A', 'pseudo'=>'a'],['name' => 'B', 'pseudo'=>'b']]
-],
+<?php
+$data = [
+    'eleves' => new PdfIterable($this->em->getRepository(Eleve::class)->findAll()),
+    'users' => new PdfIterable([['nom'=>'saenger','adresse'=>['rue'=>'rue du chat']], ['nom'=>'boehler', 'adresse'=>['rue'=>'rue du chien']]]),            
+];
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'myiterable.doc', $data);
 ```
 
-In word file create an table with one row and two cells:
-cells1 containt ${name}
-cells2 containt ${pseudo}
+show it
 
-Use it only for see or suggest an pull request
+Warning only the first level of data can to be an PdfIterable, you can't use ${etablissement.eleves}:
+```php
+<?php
+$data = [
+    'etablissement' => $etablissement,
+    'eleves' => PdfIterable($etablissement->getEleves())
+];
+```
+
+# Understand the property (word to pdf)
+
+The property is read with propertyAccesor (Symfony) but the first is beetween two "[]": [first].rest
+```
+the vars ${eleve.etablissement.nom} -> $propertyAccess->getValue($params, '[eleve].etablissement.nom')
+the vars ${eleve.etablissement[nom]} -> $propertyAccess->getValue($params, '[eleve].etablissement[nom]')
+```
+!!! warning use the same systeme if you create your own type !!!
 
 
 

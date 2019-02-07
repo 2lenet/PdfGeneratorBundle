@@ -17,9 +17,6 @@ use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 class PdfGenerator
 {
 
-    const ITERABLE = 'iterable';
-    const VARS = 'vars';
-
     private $em;
     private $parameterBag;
     private $kerne;
@@ -46,10 +43,7 @@ class PdfGenerator
 
         foreach($parameters as $parameter){
             $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
-            $generator->generate($path, [
-                static::ITERABLE => [],
-                static::VARS => $parameter
-            ], $tmpFile);
+            $generator->generate($path, $parameter, $tmpFile);
             $pdf->addPDF($tmpFile, "all");
         }
         return $pdf;
