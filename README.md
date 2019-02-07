@@ -12,6 +12,13 @@ lle_pdf_generator:
   path: "data/pdfmodel"
   default_generator: "word_to_pdf"
 ```
+
+add routing (for show the ressource use <a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">)
+```yaml
+lle_pdf_generator:
+    resource: "@LlePdfGeneratorBundle/Resources/routing/routes.yaml"
+    prefix: /
+```
 if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on data/pdfmodel/mydoc.doc with word_to_pdf generator.
 
 ## Use it
