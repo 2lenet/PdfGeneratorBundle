@@ -1,5 +1,10 @@
 # PdfGeneratorBundle
 
+## Installation
+
+`composer require 2lenet/pdf-generator-bundle`
+
+
 Require: unoconv
 ```dockerfile
 RUN apt-get update;apt-get install -y unoconv
