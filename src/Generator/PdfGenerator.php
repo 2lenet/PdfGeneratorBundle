@@ -36,17 +36,15 @@ class PdfGenerator
         if(count($parameters) === 0){
             $parameters[] = [];
         }
-        $generator = $this->generators[$model->getType() ?? $this->getDefaultgenerator()];
         $pdf = new \PDFMerger();
-        $path = $generator->getRessource($this->getPath(),$model->getPath());
-
         foreach($parameters as $parameter){
-            $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
-            $generator->generate($path, [
-                static::ITERABLE => [],
-                static::VARS => $parameter
-            ], $tmpFile);
-            $pdf->addPDF($tmpFile, "all");
+            foreach(explode(',', $model->getPath()) as $k => $ressource){
+                $generator = $this->generators[explode(',', $model->getType())[$k] ?? $this->getDefaultgenerator()];
+                $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
+                $generator->generate($generator->getRessource($this->getPath(),$ressource), [static ::ITERABLE => [],
+                static ::VARS => $parameter], $tmpFile);
+                $pdf->addPDF($tmpFile, "all");
+            }
         }
         return $pdf;
     }
