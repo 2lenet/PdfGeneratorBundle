@@ -2,6 +2,8 @@
 
 namespace Lle\PdfGeneratorBundle\Entity;
 
+use Symfony\Component\HttpFoundation\File\File;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -10,6 +12,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
  *
  * @ORM\Table(name="lle_pdf_model", indexes={@ORM\Index(name="attachment_type_idx", columns={"type"})})
  * @ORM\Entity
+ * @Vich\Uploadable
  */
 class PdfModel
 {
@@ -56,6 +59,17 @@ class PdfModel
      * @ORM\Column(name="description", type="text", nullable=true)
      */
     private $description;
+
+    /**
+     * @Vich\UploadableField(mapping="pdf_model", fileNameProperty="path")
+     */
+    private $file;
+
+    /**
+     * @ORM\Column(type="datetime", nullable=true)
+     * @var \DateTime
+     */
+    private $updatedAt;
 
     public function __toString(){
         return $this->code . ' '. $this->libelle;
@@ -156,10 +170,28 @@ class PdfModel
     {
         $this->type = $type;
     }
-    
+
+    public function setFile(File $file){
+        $this->file = $file;
+        if($file){
+            $this->setUpdatedAt(new \DateTime('now'));
+        }
+    }
+
+    public function getFile(){
+        return $this->file;
+    }
 
 
+    public function getUpdatedAt(): \DateTime
+    {
+        return $this->updatedAt;
+    }
 
 
+    public function setUpdatedAt(\DateTime $updatedAt)
+    {
+        $this->updatedAt = $updatedAt;
+    }
 
 }

@@ -1,0 +1,4 @@
+lle_pdf_generator_show_ressource:
+    path:      /pdf/{id}/show/ressource
+    defaults:
+        _controller: Lle\PdfGeneratorBundle\Action\ShowRessourceAction

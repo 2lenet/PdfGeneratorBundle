@@ -1,5 +1,10 @@
 # PdfGeneratorBundle
 
+## Installation
+
+`composer require 2lenet/pdf-generator-bundle`
+
+
 Require: unoconv
 ```dockerfile
 RUN apt-get update;apt-get install -y unoconv
@@ -11,6 +16,13 @@ config (with default value):
 lle_pdf_generator:
   path: "data/pdfmodel"
   default_generator: "word_to_pdf"
+```
+
+add routing (for show the ressource use <a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">)
+```yaml
+lle_pdf_generator:
+    resource: "@LlePdfGeneratorBundle/Resources/routing/routes.yaml"
+    prefix: /
 ```
 if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on data/pdfmodel/mydoc.doc with word_to_pdf generator.
 
@@ -27,10 +39,29 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
     foreach($userRepository->findAll() as $user){
         $data[] = ['name' => $user->getName()];
     }
-    return $generator->generateResponse('INVITATION', $data);
+    //create an response by Bdd
+    return $generator->generateResponse('MYMODELCODE', $data);
     //or
+    //create an PdfMerger by Bdd
+    $generator->generate('MYMODELCODE', $data)->merge('pdf.pdf','F');
+    //or
+    //create an PdfMerger by ressource
     return $generator->generateByRessourceResponse(TcpdfGenerator::getName(), MyTcpdfClass::class, $data);
+    //or
+    //create an response by ressource
+    $generator->generateByRessource(TcpdfGenerator::getName(), MyTcpdfClass::class, $data)->merge('pdf.pdf','F');
 }
+```
+
+You can create an instance of TcpdfFpdi (Tcpdf and Fpdi) with the PdfMerger
+```php
+<?php
+$pdfMerger = $generator->generate('MYMODELCODE', $data)->merge('pdf.pdf','F');
+$pdf = $pdfMerger->toTcpdfFpdi();
+$pdf->addPage('P');
+$pdf->writeHTML('Hello', true, 0, true, 0);
+$pdf->Output('file.pdf', 'F');
+return new ResponseBinaryFile('file.pdf');
 ```
 
 ## Use with bdd
@@ -210,26 +241,141 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 ```
 https://phpword.readthedocs.io/en/latest/templates-processing.html
 
-## Future features
-The iterable data for word_to_pdf not work for the moment.
+##Sign pdf
 
-you can JUST test it directly in Lle\PdfGeneratorBundle\Generator\PdfGenerator l 46 
+Use the Lle\PdfGeneratorBundle\Lib\Signature class you can sign an pdf response or an PdfMerge
 
-static::ITERABLE => []
+### Cretae the signature
 
-replace by
-
-```php
-static::ITERABLE => [
-   'table1' => [['name' => 'A', 'pseudo'=>'a'],['name' => 'B', 'pseudo'=>'b']]
-],
+```
+openssl req -x509 -nodes -days 365000 -newkey rsa:1024 -keyout tcpdf.crt -out tcpdf.crt
+openssl pkcs12 -export -in tcpdf.crt -out tcpdf.p12
 ```
 
-In word file create an table with one row and two cells:
-cells1 containt ${name}
-cells2 containt ${pseudo}
+```php
+<?php
+$password = '***';
+$info = [
+    'Name' => 'name',
+    'Location' => 'location',
+    'Reason' => 'reason',
+    'ContactInfo' => 'url',
+];
+$signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info);
+```
 
-Use it only for see or suggest an pull request
+You can add an draw with signature
+```php
+<?php
+/*...*/
+$picture = 'signature.png';
+$signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info, $pictur);
+//or
+$pos = [
+    'w' => 40, //width default 40
+    'h' => 20, //heght default 20
+    'x' => 10, //x default pageWidth - w
+    'y' => 10, //y default pageHeight - (h*2+5)
+    'p' => 1 //page default last page
+];
+$signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info, $pictur, $pos);
+```
+You can also add segment or points for create the signature picture
+```php
+<?php
+$signature = new Signature($certif, $password, $info);
+
+$signature->setSegments([[$x1,$y1],[$x2,$y2]], $pos);
+//or
+$signature->setPoints([$x1,$y1,$x2,$y2], $pos);
+//or
+$signature->setImage('signe.png', $pos);
+
+$signature->setPosition($pos); // you can use it also
+```
+### Pdf response
+```php
+<?php
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.doc', $data, [$signature]);
+//or
+return $generator->generateResponse('MYMODELCODE', $data, [$signature]);
+```
+
+### Pdf Merger
+
+The pdfMerge is the class of instance return by generator
+```php
+<?php
+$pdfMerger = $generator->generateByRessource(WordToPdfGenerator::getName(), 'test.doc', $data);
+//or
+$pdfMerger = $generator->generate('MYMODELCODE', $data);
+$pdf = $generator->signes($pdfMerger, [$signature]); //return an TcpdfFpdi (signe($pdfMerger, $signature) exist also)
+$pdf->Output('My pdf', 'D'); // return a signed pdf
+$pdfMerger->merge('My pdf', 'D'); // return a unsigned pdf
+```
+You can't signed a pdfMerger you have to pass by TcpdfFpdi. An PdfMerger instance can never be signed
+
+You can continue to sign an TcpdfFpdi with $generator->signeTcpdfFpdi($pdf, $signature)
+
+You can also use directly the signature instance for sign a Pdfmerger or TcpdfFpdi
+```php
+<?php
+$pdfMerger = $generator->generate('MYMODELCODE', $data);
+$signature->signe($pdfMerger)->Output('My pdf', 'D');
+```
+
+or
+
+```php
+<?php
+$pdfMerger = $generator->generate('MYMODELCODE', $data);
+$pdf = $pdfMerger->toTcpdfFpdi();
+$pdf = $signature->signeTcpdfFpdi($pdf);
+$pdf = $signature2->signeTcpdfFpdi($pdf);
+$pdf->Output('My pdf', 'D');
+```
+
+You can't use several sign with PdfMerger
+
+
+
+## Future features (with word_to_pdf)
+create a .doc file and create 2 table (1 line , 2 cells)
+
+- first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}
+- second table cells 1 write ${users.[nom], cells 2 write ${users.[adresse][rue]}
+
+save it with myiterable.doc
+use the Lle\PdfGeneratorBundle\Lib\PdfIterable class
+
+```php
+<?php
+$data = [
+    'eleves' => new PdfIterable($this->em->getRepository(Eleve::class)->findAll()),
+    'users' => new PdfIterable([['nom'=>'saenger','adresse'=>['rue'=>'rue du chat']], ['nom'=>'boehler', 'adresse'=>['rue'=>'rue du chien']]]),            
+];
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'myiterable.doc', $data);
+```
+
+show it
+
+Warning only the first level of data can to be an PdfIterable, you can't use ${etablissement.eleves}:
+```php
+<?php
+$data = [
+    'etablissement' => $etablissement,
+    'eleves' => PdfIterable($etablissement->getEleves())
+];
+```
+
+# Understand the property (word to pdf)
+
+The property is read with propertyAccesor (Symfony) but the first is beetween two "[]": [first].rest
+```
+the vars ${eleve.etablissement.nom} -> $propertyAccess->getValue($params, '[eleve].etablissement.nom')
+the vars ${eleve.etablissement[nom]} -> $propertyAccess->getValue($params, '[eleve].etablissement[nom]')
+```
+!!! warning use the same systeme if you create your own type !!!
 
 
 

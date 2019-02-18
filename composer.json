@@ -24,7 +24,8 @@
         "dompdf/dompdf": "^0.8",
         "tecnickcom/tcpdf": "*",
         "setasign/fpdi-fpdf": "^2.0",
-        "setasign/tfpdf":"1.25"
+        "setasign/tfpdf":"1.25",
+        "vich/uploader-bundle": "^1.8"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }

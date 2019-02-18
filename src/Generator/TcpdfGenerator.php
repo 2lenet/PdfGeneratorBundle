@@ -20,13 +20,13 @@ use Symfony\Component\Process\Process;
 class TcpdfGenerator extends AbstractPdfGenerator
 {
 
-    protected $pdfPath;
+
 
     public function generate(string $source, iterable $params, string $savePath):void{
         $reflex = new \ReflectionClass($source);
         $pdf = $reflex->newInstance();
         if ($pdf instanceof Pdf) {
-            $pdf->setData($params['vars']);
+            $pdf->setData($params);
             $pdf->setRootPath($this->pdfPath);
             $pdf->initiate();
             $pdf->generate();
@@ -37,8 +37,7 @@ class TcpdfGenerator extends AbstractPdfGenerator
         $pdf->output($savePath, 'F');
     }
 
-    public function getRessource(string $pdfPath, string $modelRessource): string{
-        $this->pdfPath = $pdfPath;
+    public function getRessource(string $modelRessource): string{
         return $modelRessource;
     }
 

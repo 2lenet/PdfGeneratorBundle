@@ -1,0 +1,30 @@
+easy_admin:
+    entities:
+        Pdfmodel:
+            class: Lle\PdfGeneratorBundle\Entity\PdfModel
+            disabled_actions: []
+            list:
+                title: title.pdfmodel.list
+                actions:
+                    - { name: new, icon: add }
+                    - { name: edit, icon: edit }
+                    - { name: delete, icon: trash }
+                fields:
+                    - { property: libelle, label: field.libelle }
+                    - { property: code, label: field.code }
+                    - { property: type, label: field.type }
+                    - { property: path, label: field.path }
+                sort:
+                    - id
+                    - DESC
+            form:
+                fields:
+                    - { property: libelle, label: field.libelle }
+                    - { property: code, label: field.code }
+                    - { property: file, type: file }
+            edit:
+                title: title.pdfmodel.edit
+                actions: []
+            new:
+                title: title.pdfmodel.new
+                actions: []
