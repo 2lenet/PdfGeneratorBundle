@@ -13,7 +13,7 @@ class Signature
     private $image = null;
     private $position = [];
 
-    public function __construct(string $certificate, string $password, array $data = [], ?string $image = null, ?array $position = null)
+    public function __construct(string $certificate = null, string $password = null, array $data = [], ?string $image = null, ?array $position = null)
     {
         $this->data = $data;
         $this->password = $password;
@@ -95,8 +95,8 @@ class Signature
         return $this->setPosition($position ?? $this->position);
     }
 
-    public function setPosition(array $position): self{
-        $this->position = $position;
+    public function setPosition(?array $position = null): self{
+        $this->position = $position ?? [];
         return $this;
     }
 
@@ -113,13 +113,15 @@ class Signature
     }
 
     public function signeTcpdfFpdi(TcpdfFpdi $pdf): TcpdfFpdi{
-        $pdf->setSignature('file://'.$this->certificate, 'file://'.$this->certificate, $this->password, '', 2, $this->data , 'A');
+        if($this->certificate && $this->password) {
+            $pdf->setSignature('file://' . $this->certificate, 'file://' . $this->certificate, $this->password, '', 2, $this->data, 'A');
+        }
         if($this->image) {
             $w = $this->position['w'] ?? 40;
             $h = $this->position['h'] ?? 20;
             $x = $this->position['x'] ?? $pdf->getPageWidth() - $w;
             $y = $this->position['y'] ?? $pdf->getPageHeight() - ($h * 2 + 5);
-            if($this->position['p']){
+            if(isset($this->position['p']) && $this->position['p']){
                 $pdf->setPage($this->position['p']);
             }
             $pdf->Image($this->image, $x, $y, $w, $h, 'PNG');
