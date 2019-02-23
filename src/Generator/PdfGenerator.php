@@ -36,23 +36,26 @@ class PdfGenerator
         if(count($parameters) === 0){
             $parameters[] = [];
         }
-        $generator = $this->generators[$model->getType() ?? $this->getDefaultgenerator()];
-        $generator->setPdfPath($this->getPath());
-        $pdf = new PDFMerger();
-        $path = $generator->getRessource($model->getPath());
 
-        foreach($parameters as $parameter){
-            $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
-            $generator->generate($path, $parameter, $tmpFile);
-            $pdf->addPDF($tmpFile, "all");
+        $pdf = new PdfMerger();
+        foreach($parameters as $parameter) {
+            foreach (explode(',', $model->getPath()) as $k => $ressource) {
+                $types = explode(',', $model->getType());
+                $generator = $this->generators[$types[$k] ?? $types[0] ?? $this->getDefaultgenerator()];
+                $generator->setPdfPath($this->getPath());
+                $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
+                $r = $generator->getRessource($ressource);
+                $generator->generate($r , $parameter, $tmpFile);
+                $pdf->addPDF($tmpFile, "all");
+            }
         }
         return $pdf;
     }
 
-    public function generateByRessource(string $type, string $ressource, iterable $parameters = []):PDFMerger{
+    public function generateByRessource($type, $ressource, iterable $parameters = []):PDFMerger{
         $model = new PdfModel();
-        $model->setType($type);
-        $model->setPath($ressource);
+        $model->setType(is_array($type)? implode(',',$type):$type);
+        $model->setPath(is_array($ressource)? implode(',',$ressource):$ressource);
         return $this->generateByModel($model, $parameters);
     }
 
@@ -82,7 +85,7 @@ class PdfGenerator
         return $pdf;
     }
 
-    public function generateByRessourceResponse(string $type, string $ressource, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse{
+    public function generateByRessourceResponse($type, $ressource, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse{
         return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signatures);
     }
 

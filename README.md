@@ -1,5 +1,10 @@
 # PdfGeneratorBundle
 
+## Installation
+
+`composer require 2lenet/pdf-generator-bundle`
+
+
 Require: unoconv
 ```dockerfile
 RUN apt-get update;apt-get install -y unoconv
@@ -334,7 +339,7 @@ You can't use several sign with PdfMerger
 
 
 
-## Future features (with word_to_pdf)
+## ieterable data
 create a .doc file and create 2 table (1 line , 2 cells)
 
 - first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}
@@ -374,5 +379,31 @@ the vars ${eleve.etablissement[nom]} -> $propertyAccess->getValue($params, '[ele
 
 
 
+## Merge several model
 
+```php
+<?php
+return $generator->generateByRessourceResponse(
+    TcpdfGenerator::getName(), 
+    [MyTcpdfClass::class,AnotherTcpdfClass::class], 
+    $data);
+```
 
+```php
+<?php
+return $generator->generateByRessourceResponse(
+    [TcpdfGenerator::getName(),WortdToPdfGenerator::getName()], 
+    [MyTcpdfClass::class,'mydoc.doc'], 
+    $data);
+```
+
+in bdd:
+
+```sql
+INSERT INTO `lle_pdf_model` (`code`, `path`, `type`) VALUES
+('RELANCE_1ANS', 'mydoc.doc,App\\Service\\Pdf\\LotInvitation', 'word_to_pdf,tcpdf')
+```
+
+The default type is always the first (here "word_to_pdf")
+
+if none type is defined the type is lle_pdf_generator.default_generator config
