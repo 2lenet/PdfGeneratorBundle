@@ -9,6 +9,12 @@ Require: unoconv
 ```dockerfile
 RUN apt-get update;apt-get install -y unoconv
 ```
+unoconv may have some problems with the www-data user: https://github.com/unoconv/unoconv/issues/241
+```dockerfile
+RUN mkdir -p /var/www/.cache && chown www-data /var/www/.cache && chgrp www-data /var/www/.cache
+RUN mkdir -p /var/www/.config && chown www-data /var/www/.config && chgrp www-data /var/www/.config
+```
+I think that this can be perfectible.
 
 ## Configuration
 config (with default value):
@@ -79,7 +85,7 @@ php bin/console lle:pdf-generator:create-model
 
 you can create several type of pdf (already exist tcpdf and word_to_pdf)
 
-- word_to_pdf (the ressource is an path of .doc)
+- word_to_pdf (the ressource is an path of .docx format Microsoft Word XML)
 - tcpdf (the ressource is an class which extend Lle\PdfGeneratorBundle\Lib\Pdf (Tcpdf and Fpdi))
 
 You can create your own type with an class which extend Lle\PdfGeneratorBundle\Generator\AbstractPdfGenerator
@@ -205,9 +211,9 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 }
 ```
 
-## use the word_to_pdf
+## use the word_to_pdf (format Microsoft Word XML)
 
-Create a .doc file /data/pdfmodel/test.doc  with Hello ${name}  
+Create a .docx file /data/pdfmodel/test.docx  with Hello ${name}  
 
 ```php
 <?php
@@ -220,11 +226,11 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
     foreach($userRepository->findAll() as $user){
         $data[] = ['name' => $user->getName()];
     }
-    return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.doc', $data);
+    return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.docx', $data);
 }
 ```
 
-You can create an pdf model in bdd with ressource "test.doc" and code MYDOC type "word_to_pdf"
+You can create an pdf model in bdd with ressource "test.docx" and code MYDOC type "word_to_pdf"
 ```php
 <?php
 /**
@@ -296,7 +302,7 @@ $signature->setPosition($pos); // you can use it also
 ### Pdf response
 ```php
 <?php
-return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.doc', $data, [$signature]);
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.docx', $data, [$signature]);
 //or
 return $generator->generateResponse('MYMODELCODE', $data, [$signature]);
 ```
@@ -306,7 +312,7 @@ return $generator->generateResponse('MYMODELCODE', $data, [$signature]);
 The pdfMerge is the class of instance return by generator
 ```php
 <?php
-$pdfMerger = $generator->generateByRessource(WordToPdfGenerator::getName(), 'test.doc', $data);
+$pdfMerger = $generator->generateByRessource(WordToPdfGenerator::getName(), 'test.docx', $data);
 //or
 $pdfMerger = $generator->generate('MYMODELCODE', $data);
 $pdf = $generator->signes($pdfMerger, [$signature]); //return an TcpdfFpdi (signe($pdfMerger, $signature) exist also)
@@ -340,12 +346,12 @@ You can't use several sign with PdfMerger
 
 
 ## ieterable data
-create a .doc file and create 2 table (1 line , 2 cells)
+create a .docx file and create 2 table (1 line , 2 cells)
 
 - first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}
 - second table cells 1 write ${users.[nom], cells 2 write ${users.[adresse][rue]}
 
-save it with myiterable.doc
+save it with myiterable.docx
 use the Lle\PdfGeneratorBundle\Lib\PdfIterable class
 
 ```php
@@ -354,7 +360,7 @@ $data = [
     'eleves' => new PdfIterable($this->em->getRepository(Eleve::class)->findAll()),
     'users' => new PdfIterable([['nom'=>'saenger','adresse'=>['rue'=>'rue du chat']], ['nom'=>'boehler', 'adresse'=>['rue'=>'rue du chien']]]),            
 ];
-return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'myiterable.doc', $data);
+return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'myiterable.docx', $data);
 ```
 
 show it
@@ -393,7 +399,7 @@ return $generator->generateByRessourceResponse(
 <?php
 return $generator->generateByRessourceResponse(
     [TcpdfGenerator::getName(),WortdToPdfGenerator::getName()], 
-    [MyTcpdfClass::class,'mydoc.doc'], 
+    [MyTcpdfClass::class,'mydoc.docx'], 
     $data);
 ```
 
@@ -401,7 +407,7 @@ in bdd:
 
 ```sql
 INSERT INTO `lle_pdf_model` (`code`, `path`, `type`) VALUES
-('RELANCE_1ANS', 'mydoc.doc,App\\Service\\Pdf\\LotInvitation', 'word_to_pdf,tcpdf')
+('RELANCE_1ANS', 'mydoc.docx,App\\Service\\Pdf\\LotInvitation', 'word_to_pdf,tcpdf')
 ```
 
 The default type is always the first (here "word_to_pdf")
