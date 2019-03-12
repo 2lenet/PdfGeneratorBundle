@@ -5,7 +5,7 @@
 `composer require 2lenet/pdf-generator-bundle`
 
 
-Require: unoconv
+Require: unoconv (for word_to_pdf)
 ```dockerfile
 RUN apt-get update;apt-get install -y unoconv
 ```
