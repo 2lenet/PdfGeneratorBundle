@@ -32,7 +32,7 @@ class PdfGenerator
         }
     }
 
-    private function generateByModel(PdfModel $model, iterable $parameters):PDFMerger{
+    public function generateByModel(PdfModel $model, iterable $parameters):PDFMerger{
         if(count($parameters) === 0){
             $parameters[] = [];
         }
