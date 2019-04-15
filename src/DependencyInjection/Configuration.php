@@ -2,6 +2,7 @@
 
 namespace Lle\PdfGeneratorBundle\DependencyInjection;
 
+use Lle\PdfGeneratorBundle\Entity\PdfModel;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -23,7 +24,8 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
             ->scalarNode('default_generator')->defaultValue('word_to_pdf')->end()
-            ->scalarNode('path')->defaultValue('data/pdfmodel')->end();
+            ->scalarNode('path')->defaultValue('data/pdfmodel')->end()
+            ->scalarNode('class')->defaultValue(PdfModel::class)->end();
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
         // more information on that topic.

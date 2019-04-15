@@ -22,6 +22,7 @@ config (with default value):
 lle_pdf_generator:
   path: "data/pdfmodel"
   default_generator: "word_to_pdf"
+  class: "Lle\PdfGeneratorBundle\Entity\PdfModel"
 ```
 
 add routing (for show the ressource use <a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">)
@@ -70,6 +71,30 @@ $pdf->Output('file.pdf', 'F');
 return new ResponseBinaryFile('file.pdf');
 ```
 
+## Use with your entity:
+
+change config "class" of pdf generator "App/Entity/MyModelPdf"
+```php
+
+<?php
+
+namespace App\Entity;
+
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Doctrine\ORM\Mapping as ORM;
+use Lle\PdfGeneratorBundle\Entity as PDF;
+
+/**
+ *
+ * @ORM\Table(name="lle_pdf_model", indexes={@ORM\Index(name="code_idx", columns={"code"})})
+ * @ORM\Entity
+ * @Vich\Uploadable
+ */
+class MyModelPdf implements PDF\PdfModelInterface
+{
+    use PDF\PdfModelTrait;
+}
+```
 ## Use with bdd
 
 The model is a PdfModel with
@@ -80,6 +105,8 @@ you can create a model with
 ```
 php bin/console lle:pdf-generator:create-model
 ```
+
+!! Warning if you use your own class and this class has other field with constraint the command not work. !!
 
 ## Create your own type
 

@@ -15,17 +15,15 @@ use Symfony\Component\HttpFoundation\Response;
 final class ShowRessourceAction
 {
     private $pdfGenerator;
-    private $em;
 
-    public function __construct(EntityManagerInterface $em, PdfGenerator $pdfGenerator)
+    public function __construct(PdfGenerator $pdfGenerator)
     {
         $this->pdfGenerator = $pdfGenerator;
-        $this->em = $em;
     }
 
     public function __invoke(Request $request): Response
     {
-        $model = $this->em->getRepository(PdfModel::class)->find($request->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
         return new BinaryFileResponse($this->pdfGenerator->getPath().$model->getPath());
     }
 

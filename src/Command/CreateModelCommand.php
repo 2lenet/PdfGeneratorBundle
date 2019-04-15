@@ -32,7 +32,7 @@ final class CreateModelCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $io = new SymfonyStyle($input, $output);
-        $model = new PdfModel();
+        $model = $this->generator->newInstance();
         $model->setCode($io->ask('What is the code'));
         $io->note('The pdf path is '. $this->generator->getPath());
         $model->setPath($io->ask('What is the ressource'));

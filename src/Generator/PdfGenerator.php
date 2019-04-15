@@ -3,7 +3,7 @@
 namespace Lle\PdfGeneratorBundle\Generator;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Lle\PdfGeneratorBundle\Entity\PdfModel;
+use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Lib\Signature;
 use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -32,7 +32,7 @@ class PdfGenerator
         }
     }
 
-    public function generateByModel(PdfModel $model, iterable $parameters):PDFMerger{
+    public function generateByModel(PdfModelInterface $model, iterable $parameters):PDFMerger{
         if(count($parameters) === 0){
             $parameters[] = [];
         }
@@ -41,7 +41,11 @@ class PdfGenerator
         foreach($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
                 $types = explode(',', $model->getType());
-                $generator = $this->generators[$types[$k] ?? $types[0] ?? $this->getDefaultgenerator()];
+                if(isset($this->generators[$types[$k] ?? $types[0]])){
+                    $generator = $this->generators[$types[$k] ?? $types[0]];
+                }else{
+                    $generator = $this->generators[$this->getDefaultgenerator()];
+                }
                 $generator->setPdfPath($this->getPath());
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
                 $r = $generator->getRessource($ressource);
@@ -53,7 +57,7 @@ class PdfGenerator
     }
 
     public function generateByRessource($type, $ressource, iterable $parameters = []):PDFMerger{
-        $model = new PdfModel();
+        $model = $this->newInstance();
         $model->setType(is_array($type)? implode(',',$type):$type);
         $model->setPath(is_array($ressource)? implode(',',$ressource):$ressource);
         return $this->generateByModel($model, $parameters);
@@ -61,7 +65,7 @@ class PdfGenerator
 
     public function generate(string $code, iterable $parameters = []): PDFMerger
     {
-        $model = $this->em->getRepository(PdfModel::class)->findOneBy(['code' => $code]);
+        $model = $this->getRepository()->findOneBy(['code' => $code]);
         if ($model == null) {
             throw new \Exception("no model found");
         }
@@ -102,6 +106,14 @@ class PdfGenerator
             $pdf->merge('file', $tmpFile);
         }
         return new BinaryFileResponse($tmpFile);
+    }
+
+    public function newInstance(): PdfModelInterface{
+        return $this->em->getClassMetadata($this->parameterBag->get('lle.pdf.class'))->newInstance();
+    }
+
+    public function getRepository(){
+        return $this->em->getRepository($this->parameterBag->get('lle.pdf.class'));
     }
 
     public function getPath(): string

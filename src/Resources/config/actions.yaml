@@ -4,5 +4,5 @@ services:
         public: false
 
     Lle\PdfGeneratorBundle\Action\ShowRessourceAction:
-        arguments: ['@doctrine.orm.entity_manager','@Lle\PdfGeneratorBundle\Generator\PdfGenerator']
+        arguments: ['@Lle\PdfGeneratorBundle\Generator\PdfGenerator']
         tags: [controller.service_arguments]
