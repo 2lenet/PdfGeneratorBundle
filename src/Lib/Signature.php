@@ -71,23 +71,45 @@ class Signature
     }
 
     public function setSegments(array $segments, ?array $position = null): self{
+        $pointsPolygones = [];
+        foreach($segments as $segment) {
+            $points = [];
+            foreach($segment as $line){
+                $points[] = $line[0];
+                $points[] = $line[1];
+            }
+            $pointsPolygones[] = $points;
+        }
         $points = [];
-        foreach($segments as $line){
+        /*foreach($segments as $line){
             $points[] = $line[0];
             $points[] = $line[1];
-        }
-        return $this->setPoints($points, $position);
+        }*/
+        return $this->setPoints($pointsPolygones, $position);
     }
 
-    public function setPoints(array $points, ?array $position = null): self{
+    public function setPoints(array $pointsPolygones, ?array $position = null): self{
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
+        $image = imagecreate(200,100);
+        $bg   = imagecolorallocate($image, 255, 255, 255);
+        $sg = imagecolorallocate($image, 0, 0, 0);
+        imagefilledrectangle($image, 0, 0, 249, 249, $bg);
+
+        foreach($pointsPolygones as $points) {
+            for($i=0; $i<count($points)-2; $i=$i+2) {
+                imageline($image,$points[$i], $points[$i+1], $points[$i+2], $points[$i+3], $sg);
+            }
+        }
+        imagepng($image, $tmpFile);
+        return $this->setImage($tmpFile, $position);
+        /*$tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $image = imagecreate(200,100);
         $bg   = imagecolorallocate($image, 255, 255, 255);
         $sg = imagecolorallocate($image, 0, 0, 0);
         imagefilledrectangle($image, 0, 0, 249, 249, $bg);
         imagePolygon($image, $points, count($points)/2, $sg);
         imagepng($image, $tmpFile);
-        return $this->setImage($tmpFile, $position);
+        return $this->setImage($tmpFile, $position);*/
     }
 
     public function setImage(string $image, ?array $position = null): self{

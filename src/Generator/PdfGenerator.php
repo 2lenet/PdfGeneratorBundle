@@ -67,7 +67,7 @@ class PdfGenerator
     {
         $model = $this->getRepository()->findOneBy(['code' => $code]);
         if ($model == null) {
-            throw new \Exception("no model found");
+            throw new \Exception("no model found (".$code.")");
         }
         return $this->generateByModel($model, $parameters);
 
@@ -97,15 +97,23 @@ class PdfGenerator
         return $this->getPdfToResponse($this->generate($code, $parameters), $signatures);
     }
 
+    public function generatePath(string $code, iterable $parameters = [], ?array $signatures = []): string{
+        return $this->getPdfToPath($this->generate($code, $parameters), $signatures);
+    }
+
     private function getPdfToResponse(PDFMerger $pdf, ?array $signatures = []): BinaryFileResponse{
-        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
+        return new BinaryFileResponse($this->getPdfToPath($pdf, $signatures));
+    }
+
+    private function getPdfToPath(PDFMerger $pdf, ?array $signatures = []): string{
+        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
         if(count($signatures)){
             $pdf = $this->signes($pdf, $signatures);
             $pdf->Output($tmpFile,'F');
         }else{
             $pdf->merge('file', $tmpFile);
         }
-        return new BinaryFileResponse($tmpFile);
+        return $tmpFile;
     }
 
     public function newInstance(): PdfModelInterface{
