@@ -2,3 +2,8 @@ lle_pdf_generator_show_ressource:
     path:      /pdf/{id}/show/ressource
     defaults:
         _controller: Lle\PdfGeneratorBundle\Action\ShowRessourceAction
+
+lle_pdf_generator_show_pdf:
+    path:      /pdf/{id}/show/pdf
+    defaults:
+        _controller: Lle\PdfGeneratorBundle\Action\ShowPdfAction
