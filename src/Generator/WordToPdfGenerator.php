@@ -36,7 +36,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $exp = explode('.', $variable, 2);
                 $root = '[' . $exp[0] . ']';
                 $var = $exp[1] ?? null;
-                if (isset($params[$exp[0]]) && $params[$exp[0]] instanceof PdfIterable && $var) {
+                if (isset($params[$exp[0]]) && $params[$exp[0]] instanceof PdfIterable) {
                     $iterator = $params[$exp[0]];
                     if (!isset($duplicate[$exp[0]])) {
                         $templateProcessor->cloneRow($variable, count($iterator));
@@ -45,7 +45,11 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     $i = 0;
                     foreach ($iterator as $item) {
                         $i++;
-                        $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, $this->propertyAccess->getValue($item, $var));
+                        if($var){
+                            $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, $this->propertyAccess->getValue($item, $var));
+                        }else{
+                            $templateProcessor->setValue($exp[0] .'#' . $i, (string)$item);
+                        }
                     }
                 } else {
                     $varPath = ($var) ? $root . '.' . $var : $root;
@@ -53,6 +57,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     $templateProcessor->setValue($variable, $value);
                 }
             } catch (\Exception $e) {
+                dd($e);
+                dd($variable, $params[$variable]);
                 $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
             }
         }
