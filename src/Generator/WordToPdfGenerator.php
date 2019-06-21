@@ -57,8 +57,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     $templateProcessor->setValue($variable, $value);
                 }
             } catch (\Exception $e) {
-                dd($e);
-                dd($variable, $params[$variable]);
+/*                dd($e);
+                dd($variable, $params[$variable]);*/
                 $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
             }
         }
