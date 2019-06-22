@@ -54,11 +54,14 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 } else {
                     $varPath = ($var) ? $root . '.' . $var : $root;
                     $value = $this->propertyAccess->getValue($params, $varPath);
+                    if($value instanceof \DateTime){
+                        $value = $value->format('d/m/Y');
+                    }
                     $templateProcessor->setValue($variable, $value);
                 }
             } catch (\Exception $e) {
-                dd($e);
-                dd($variable, $params[$variable]);
+                //dd($e);
+                //dd($variable, $params[$variable]);
                 $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
             }
         }
