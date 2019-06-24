@@ -46,19 +46,17 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     foreach ($iterator as $item) {
                         $i++;
                         if($var){
-                            $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, $this->propertyAccess->getValue($item, $var));
+                            $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, utf8_decode($this->propertyAccess->getValue($item, $var)));
                         }else{
-                            $templateProcessor->setValue($exp[0] .'#' . $i, (string)$item);
+                            $templateProcessor->setValue($exp[0] .'#' . $i, utf8_decode((string)$item));
                         }
                     }
                 } else {
                     $varPath = ($var) ? $root . '.' . $var : $root;
                     $value = $this->propertyAccess->getValue($params, $varPath);
-                    $templateProcessor->setValue($variable, $value);
+                    $templateProcessor->setValue($variable, utf8_decode($value));
                 }
             } catch (\Exception $e) {
-/*                dd($e);
-                dd($variable, $params[$variable]);*/
                 $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
             }
         }
