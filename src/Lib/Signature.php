@@ -135,9 +135,6 @@ class Signature
     }
 
     public function signeTcpdfFpdi(TcpdfFpdi $pdf): TcpdfFpdi{
-        if($this->certificate && $this->password) {
-            $pdf->setSignature('file://' . $this->certificate, 'file://' . $this->certificate, $this->password, '', 2, $this->data, 'A');
-        }
         if($this->image) {
             $w = $this->position['w'] ?? 40;
             $h = $this->position['h'] ?? 20;
@@ -147,10 +144,16 @@ class Signature
                 $pdf->setPage($this->position['p']);
             }
             $pdf->Image($this->image, $x, $y, $w, $h, 'PNG');
-            $pdf->setSignatureAppearance($x, $y, $w, $h);
-            $pdf->addEmptySignatureAppearance($x, $y, $w, $h);
             $pdf->setPage($pdf->getNumPages());
         }
+        if($this->certificate && $this->password) {
+            $pdf->setSignature('file://' . $this->certificate, 'file://' . $this->certificate, $this->password, '', 2, $this->data, 'A');
+            if($this->image) {
+                $pdf->setSignatureAppearance($x, $y, $w, $h);
+                //$pdf->addEmptySignatureAppearance($x, $y, $w, $h);
+            }
+        }
+
         return $pdf;
     }
 
