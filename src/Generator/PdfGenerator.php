@@ -93,6 +93,10 @@ class PdfGenerator
         return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signatures);
     }
 
+    public function generateByModelResponse(PdfModelInterface $model, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse{
+        return $this->getPdfToResponse($this->generateByModel($model, $parameters), $signatures);
+    }
+
     public function generateResponse(string $code, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse{
         return $this->getPdfToResponse($this->generate($code, $parameters), $signatures);
     }

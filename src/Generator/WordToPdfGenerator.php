@@ -57,10 +57,14 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     $templateProcessor->setValue($variable, utf8_decode($value));
                 }
             } catch (\Exception $e) {
-                $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
+                    if($value instanceof \DateTime){
+                        $value = $value->format('d/m/Y');
+                    }
+                    $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
             }
         }
     }
+
 
     private function wordToPdf(string $source, iterable $params, string $savePath)
     {
