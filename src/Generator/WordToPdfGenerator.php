@@ -29,7 +29,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $this->propertyAccess = $accessor;
     }
 
-    private function compile(iterable $params, TemplateProcessor $templateProcessor)
+    private function compile(iterable $params, TemplateProcessor $templateProcessor, array $options)
     {
         $duplicate = [];
         foreach ($templateProcessor->getVariables() as $variable) {
@@ -63,16 +63,21 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             } catch (\Exception $e) {
                 //dd($e);
                 //dd($variable, $params[$variable]);
-                $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
+                if(isset($options[PdfGenerator::OPTION_EMPTY_NOTFOUND_VALUE]) && $options[PdfGenerator::OPTION_EMPTY_NOTFOUND_VALUE]){
+                    $templateProcessor->setValue($variable, $params[$variable] ?? '');
+                }else{
+                    $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
+                }
+
             }
         }
     }
 
-    private function wordToPdf(string $source, iterable $params, string $savePath)
+    private function wordToPdf(string $source, iterable $params, string $savePath, array $options)
     {
         $templateProcessor = new TemplateProcessor($source);
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
-        $this->compile($params, $templateProcessor);
+        $this->compile($params, $templateProcessor, $options);
         $templateProcessor->saveAs($tmpFile);
         $process = new Process(['unoconv','-o',$savePath, '-f', 'pdf', $tmpFile]);
         $process->run();
@@ -81,7 +86,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    public function generate(string $source, iterable $params, string $savePath):void{
+    public function generate(string $source, iterable $params, string $savePath, array $options = []):void{
         if(!file_exists($source)){
             if(!file_exists($source.'.docx')) {
                 throw new \Exception($source . '(.docx) not found');
@@ -89,7 +94,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $source = $source.'.docx';
             }
         }
-        $this->wordToPdf($source, $params, $savePath);
+        $this->wordToPdf($source, $params, $savePath, $options);
     }
 
     public static function getName(): string{

@@ -22,7 +22,7 @@ class TcpdfGenerator extends AbstractPdfGenerator
 
 
 
-    public function generate(string $source, iterable $params, string $savePath):void{
+    public function generate(string $source, iterable $params, string $savePath, array $options = []):void{
         $reflex = new \ReflectionClass($source);
         $pdf = $reflex->newInstance();
         if ($pdf instanceof Pdf) {

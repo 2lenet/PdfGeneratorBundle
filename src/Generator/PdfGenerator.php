@@ -17,19 +17,28 @@ use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 class PdfGenerator
 {
 
+    const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
+
     private $em;
     private $parameterBag;
     private $kerne;
     private $generators = [];
+    private $criteria;
+    private $options = [];
 
     public function __construct(EntityManagerInterface $em, KernelInterface $kernel, ParameterBagInterface $parameterBag, iterable $pdfGenerators)
     {
         $this->em = $em;
         $this->parameterBag = $parameterBag;
         $this->kernel = $kernel;
+        $this->criteria = [];
         foreach($pdfGenerators as $pdfGenerator){
             $this->generators[$pdfGenerator->getName()] = $pdfGenerator;
         }
+    }
+
+    public function addOption($key, $val){
+        $this->options[$key] = $val;
     }
 
     public function generateByModel(PdfModelInterface $model, iterable $parameters):PDFMerger{
@@ -49,7 +58,7 @@ class PdfGenerator
                 $generator->setPdfPath($this->getPath());
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
                 $r = $generator->getRessource($ressource);
-                $generator->generate($r , $parameter, $tmpFile);
+                $generator->generate($r , $parameter, $tmpFile, $this->options);
                 $pdf->addPDF($tmpFile, "all");
             }
         }
@@ -65,12 +74,20 @@ class PdfGenerator
 
     public function generate(string $code, iterable $parameters = []): PDFMerger
     {
-        $model = $this->getRepository()->findOneBy(['code' => $code]);
+        $model = $this->getRepository()->findOneBy($this->getCriteria($code));
         if ($model == null) {
             throw new \Exception("no model found (".$code.")");
         }
         return $this->generateByModel($model, $parameters);
 
+    }
+
+    public function getCriteria($code){
+        return array_merge(['code' => $code],$this->criteria);
+    }
+
+    public function setCriteria(array $criteria){
+        $this->criteria = $criteria;
     }
 
     public function signe(PdfMerger $pdfMerger, Signature $signature): TcpdfFpdi{
