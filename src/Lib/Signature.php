@@ -136,6 +136,7 @@ class Signature
 
     public function signeTcpdfFpdi(TcpdfFpdi $pdf): TcpdfFpdi{
         if($this->image) {
+            $s = $this->position['s'] ?? 8;
             $w = $this->position['w'] ?? 40;
             $h = $this->position['h'] ?? 20;
             $x = $this->position['x'] ?? $pdf->getPageWidth() - $w;
@@ -143,8 +144,24 @@ class Signature
             if(isset($this->position['p']) && $this->position['p']){
                 $pdf->setPage($this->position['p']);
             }
+            $pdf->SetAutoPageBreak(FALSE, PDF_MARGIN_BOTTOM);
             $pdf->Image($this->image, $x, $y, $w, $h, 'PNG');
+            $pdf->SetFontSize($s);
+            $pdf->SetFillColor(255,255,255);
+
+            if(isset($this->position['header'])) {
+                $spx = $pdf->getStringHeight($w,$this->position['header'] );
+                $pdf->SetXY($x, $y - $spx);
+                $pdf->Cell($w, $spx, $this->position['header'], 0, 0, 'C', true);
+            }
+
+            if(isset($this->position['footer'])){
+                $spx = $pdf->getStringHeight($w,$this->position['footer'] );
+                $pdf->SetXY($x, $y + $h);
+                $pdf->Cell($w, $spx, $this->position['footer'], 0, 0, 'C', true);
+            }
             $pdf->setPage($pdf->getNumPages());
+            $pdf->SetAutoPageBreak(false);
         }
         if($this->certificate && $this->password) {
             $pdf->setSignature('file://' . $this->certificate, 'file://' . $this->certificate, $this->password, '', 2, $this->data, 'A');
