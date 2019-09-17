@@ -11,6 +11,8 @@ use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 final class ShowPdfAction
 {
@@ -24,7 +26,11 @@ final class ShowPdfAction
     public function __invoke(Request $request): Response
     {
         $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
-        return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
+        if($model){
+            return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
+        }else{
+            throw new NotFoundHttpException();
+        }
     }
 
 }
