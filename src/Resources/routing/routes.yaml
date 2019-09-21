@@ -7,3 +7,8 @@ lle_pdf_generator_show_pdf:
     path:      /pdf/{id}/show/pdf
     defaults:
         _controller: Lle\PdfGeneratorBundle\Action\ShowPdfAction
+
+lle_pdf_generator_check_pdf:
+    path:      /pdf/{id}/check/pdf
+    defaults:
+        _controller: Lle\PdfGeneratorBundle\Action\CheckPdfAction
