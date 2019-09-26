@@ -47,9 +47,9 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     foreach ($iterator as $item) {
                         $i++;
                         if($var){
-                            $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, $this->propertyAccess->getValue($item, $var));
+                            $templateProcessor->setValue($exp[0] . '.' . htmlspecialchars($var) . '#' . $i, htmlspecialchars($this->propertyAccess->getValue($item, $var)));
                         }else{
-                            $templateProcessor->setValue($exp[0] .'#' . $i, (string)$item);
+                            $templateProcessor->setValue($exp[0] .'#' . $i, htmlspecialchars((string) $item));
                         }
                     }
                 } else {
@@ -58,7 +58,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     if($value instanceof \DateTime){
                         $value = $value->format('d/m/Y');
                     }
-                    $templateProcessor->setValue($variable, $value);
+                    $templateProcessor->setValue($variable, htmlspecialchars($value));
                 }
             } catch (\Exception $e) {
                 //dd($e);
