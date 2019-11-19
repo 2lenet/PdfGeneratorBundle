@@ -49,12 +49,15 @@ class PdfGenerator
         $pdf = new PdfMerger();
         foreach($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
+                
+                // instanciate the generator type from model type
                 $types = explode(',', $model->getType());
                 if(isset($this->generators[$types[$k] ?? $types[0]])){
                     $generator = $this->generators[$types[$k] ?? $types[0]];
                 }else{
                     $generator = $this->generators[$this->getDefaultgenerator()];
                 }
+                
                 $generator->setPdfPath($this->getPath());
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
                 $r = $generator->getRessource($ressource);
@@ -64,7 +67,7 @@ class PdfGenerator
         }
         return $pdf;
     }
-
+    
     public function generateByRessource($type, $ressource, iterable $parameters = []):PDFMerger{
         $model = $this->newInstance();
         $model->setType(is_array($type)? implode(',',$type):$type);
@@ -72,13 +75,13 @@ class PdfGenerator
         return $this->generateByModel($model, $parameters);
     }
 
-    public function generate(string $code, iterable $parameters = []): PDFMerger
+    public function generate(string $code, iterable $datas = []): PDFMerger
     {
         $model = $this->getRepository()->findOneBy($this->getCriteria($code));
         if ($model == null) {
             throw new \Exception("no model found (".$code.")");
         }
-        return $this->generateByModel($model, $parameters);
+        return $this->generateByModel($model, $datas);
 
     }
 

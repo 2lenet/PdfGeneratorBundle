@@ -37,6 +37,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $exp = explode('.', $variable, 2);
                 $root = '[' . $exp[0] . ']';
                 $var = $exp[1] ?? null;
+
+                // element de detail dupliqué dans le modele
                 if (isset($params[$exp[0]]) && $params[$exp[0]] instanceof PdfIterable) {
                     $iterator = $params[$exp[0]];
                     if (!isset($duplicate[$exp[0]])) {
@@ -53,6 +55,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                         }
                     }
                 } else {
+                    // element simplement remplacé
                     $varPath = ($var) ? $root . '.' . $var : $root;
                     $value = $this->propertyAccess->getValue($params, $varPath);
                     if($value instanceof \DateTime){
@@ -68,7 +71,6 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 }else{
                     $templateProcessor->setValue($variable, $params[$variable] ?? $variable);
                 }
-
             }
         }
     }
@@ -84,6 +86,20 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         if(!$process->isSuccessful()){
             throw new ProcessFailedException($process);
         }
+    }
+
+    public function getVariables(string $source):array
+    {
+        $templateProcessor = new TemplateProcessor($source);
+        $res = [];
+        foreach ($templateProcessor->getVariables() as $variable) {
+            if (array_key_exists($variable, $res)) {
+                $res[$variable]++;
+            } else {
+                $res[$variable] = 1;
+            }
+        }
+        return $res;
     }
 
     public function generate(string $source, iterable $params, string $savePath, array $options = []):void{
