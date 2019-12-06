@@ -34,11 +34,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $duplicate = [];
         foreach ($templateProcessor->getVariables() as $variable) {
             try {
-                $exp = explode('.', $variable, 2);
-                $root = '[' . $exp[0] . ']';
-                $var = $exp[1] ?? null;
-
-                // element de detail dupliqué dans le modele
+                [$exp, $root, $var, $img] = $this->getPathVar($variable);
                 if (isset($params[$exp[0]]) && $params[$exp[0]] instanceof PdfIterable) {
                     $iterator = $params[$exp[0]];
                     if (!isset($duplicate[$exp[0]])) {
@@ -47,25 +43,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     }
                     $i = 0;
                     foreach ($iterator as $item) {
-                        $i++;
-                        if($var){
-                            $templateProcessor->setValue($exp[0] . '.' . $var . '#' . $i, htmlspecialchars($this->propertyAccess->getValue($item, $var)));
-                        }else{
-                            $templateProcessor->setValue($exp[0] .'#' . $i, htmlspecialchars((string) $item));
-                        }
+                        $this->setVar($templateProcessor, $variable .'#'.++$i, $item, $var , $img);
                     }
                 } else {
-                    // element simplement remplacé
-                    $varPath = ($var) ? $root . '.' . $var : $root;
-                    $value = $this->propertyAccess->getValue($params, $varPath);
-                    if($value instanceof \DateTime){
-                        $value = $value->format('d/m/Y');
-                    }
-                    $templateProcessor->setValue($variable, htmlspecialchars($value));
+                    $this->setVar($templateProcessor, $variable, $params, ($var) ? $root . '.' . $var : $root , $img);
                 }
             } catch (\Exception $e) {
-                //dd($e);
-                //dd($variable, $params[$variable]);
                 if(isset($options[PdfGenerator::OPTION_EMPTY_NOTFOUND_VALUE]) && $options[PdfGenerator::OPTION_EMPTY_NOTFOUND_VALUE]){
                     $templateProcessor->setValue($variable, $params[$variable] ?? '');
                 }else{
@@ -115,5 +98,52 @@ class WordToPdfGenerator extends AbstractPdfGenerator
 
     public static function getName(): string{
         return 'word_to_pdf';
+    }
+
+    private function getPathVar($variable){
+        if(mb_substr($variable, 0, 4, "UTF-8") === '@img') {
+            preg_match('#^@img\[([A-Za-z0-9\.\[\]]+)\](:(\d+)x(\d+))?$#', $variable, $match);
+            $variable = $match[1];
+        }
+        $exp = explode('.', $variable, 2);
+        $root = '[' . $exp[0] . ']';
+        $var = $exp[1] ?? null;
+        return [$exp, $root, $var, $match ?? null];
+    }
+
+    private function getImg($root, $var, $match){
+        $value = ($var) ? $this->propertyAccess->getValue($root, $var):(string)$root;
+        if(substr($value,0,1) === '/'){
+            $img = ['path' =>  $value];
+        }else{
+            $img = ['path' =>  $this->pdfPath.$value];
+        }
+        if(isset($match[2])){
+            $img['width'] = $match[3];
+            $img['height'] = $match[4];
+        }
+        return $img;
+    }
+
+    private function getValue($root, $var){
+        if($var) {
+            $value = $this->propertyAccess->getValue($root, $var);
+        }else{
+            $value = (string)$root;
+        }
+        if ($value instanceof \DateTime) {
+            $value = $value->format('d/m/Y');
+        }
+        return htmlspecialchars($value);
+    }
+
+    private function setVar($templateProcessor, $variable , $root, $var , $match){
+        if(mb_substr($variable, 0, 4, "UTF-8") === '@img'){
+            $img = $this->getImg($root, $var, $match);
+            $templateProcessor->setImageValue($variable, $img);
+        }else {
+            $value = $this->getValue($root, $var);
+            $templateProcessor->setValue($variable, $value);
+        }
     }
 }
