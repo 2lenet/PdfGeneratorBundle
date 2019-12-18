@@ -47,6 +47,13 @@ trait PdfModelCustomFileTrait{
     /**
      * @var string|null
      *
+     * @ORM\Column(name="datamodel", type="string", length=255, nullable=true)
+     */
+    private $datamodel;
+
+    /**
+     * @var string|null
+     *
      * @ORM\Column(name="description", type="text", nullable=true)
      */
     private $description;
@@ -208,4 +215,22 @@ trait PdfModelCustomFileTrait{
     {
         $this->checkFile = $checkFile;
     }
+    
+
+    /**
+     * @return string|null
+     */
+    public function getDatamodel(): ?string
+    {
+        return $this->datamodel;
+    }
+
+    /**
+     * @param string|null $datamodel
+     */
+    public function setDatamodel(?string $datamodel): void
+    {
+        $this->datamodel = $datamodel;
+    }
+        
 }
