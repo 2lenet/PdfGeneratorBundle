@@ -8,6 +8,7 @@ namespace Lle\PdfGeneratorBundle\Action;
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Entity\PdfModel;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
+use Lle\PdfGeneratorBundle\Lib\PdfIterable;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

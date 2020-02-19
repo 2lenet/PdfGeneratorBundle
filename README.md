@@ -255,8 +255,9 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
     }
     return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.docx', $data);
 }
-```
 
+
+```
 You can create an pdf model in bdd with ressource "test.docx" and code MYDOC type "word_to_pdf"
 ```php
 <?php
@@ -272,6 +273,17 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
     return $generator->generateResponse('MYDOC', $data);
 }
 ```
+
+you can use variables ${@img[logo]:100x200} or ${@img[logo]} for create images. (regex is #^@img\[(\w+)\](:(\d+)x(\d+))?$#)
+```php
+$generator->generateResponse('MYDOC', [['logo'=> 'logo.png']]);
+```
+search to {{lle_pdf_generator.path}}/logo.png so default is data/pdfmodel/logo.png
+```php
+$generator->generateResponse('MYDOC', [['logo'=> '/logo.png']]);
+```
+search to /logo.png
+
 https://phpword.readthedocs.io/en/latest/templates-processing.html
 
 ##Sign pdf
@@ -373,10 +385,10 @@ You can't use several sign with PdfMerger
 
 
 ## ieterable data
-create a .docx file and create 2 table (1 line , 2 cells)
+create a .docx file and create 2 table (1 line , 3 cells)
 
-- first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}
-- second table cells 1 write ${users.[nom], cells 2 write ${users.[adresse][rue]}
+- first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}, cells 3 write ${@img[eleves.logo]}
+- second table cells 1 write ${users.[nom]}, cells 2 write ${users.[adresse][rue]}, cells 3 write ${@img[users.[logo]]}
 
 save it with myiterable.docx
 use the Lle\PdfGeneratorBundle\Lib\PdfIterable class
@@ -385,7 +397,7 @@ use the Lle\PdfGeneratorBundle\Lib\PdfIterable class
 <?php
 $data = [
     'eleves' => new PdfIterable($this->em->getRepository(Eleve::class)->findAll()),
-    'users' => new PdfIterable([['nom'=>'saenger','adresse'=>['rue'=>'rue du chat']], ['nom'=>'boehler', 'adresse'=>['rue'=>'rue du chien']]]),            
+    'users' => new PdfIterable([['nom'=>'saenger','adresse'=>['rue'=>'rue du chat'], 'logo'=>'logo.png'], ['nom'=>'boehler', 'adresse'=>['rue'=>'rue du chien'], 'logo.png']]),            
 ];
 return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'myiterable.docx', $data);
 ```
