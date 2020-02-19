@@ -18,8 +18,8 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('lle_pdf_generator');
+        $treeBuilder = new TreeBuilder('lle_pdf_generator');
+        $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
             ->children()

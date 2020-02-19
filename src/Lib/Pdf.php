@@ -103,7 +103,7 @@ abstract class Pdf extends TcpdfFpdi
 
     protected function drawImage($file, $x = 0, $y = 0, $width = null, $height = null, $options = array())
     {
-        $file = $this->get('kernel')->getRootDir().'/../'.$file;
+        $file = $this->get('kernel')->getProjectDir().'/'.$file;
         $round = (isset($options['round']))? $options['round']:false;
         $crop = (isset($options['crop']))? $options['crop']:false;
         $center = (isset($options['center']))? $options['center']:false;
