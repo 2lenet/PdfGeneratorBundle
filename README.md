@@ -22,7 +22,7 @@ config (with default value):
 lle_pdf_generator:
   path: "data/pdfmodel"
   default_generator: "word_to_pdf"
-  class: "Lle\PdfGeneratorBundle\Entity\PdfModel"
+  class: 'Lle\PdfGeneratorBundle\Entity\PdfModel'
 ```
 
 add routing (for show the ressource use <a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">)
