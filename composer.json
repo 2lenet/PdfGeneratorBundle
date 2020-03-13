@@ -20,7 +20,7 @@
         "symfony/property-access": "^4.1 || ^5.0",
         "phpoffice/phpword": "^0.17",
         "zendframework/zend-stdlib": "^3.2",
-        "rguedes/pdfmerger": "^1.0.4",
+        "alexanderpavlov/pdfmerger": "^1.0.5",
         "dompdf/dompdf": "^0.8",
         "tecnickcom/tcpdf": "*",
         "setasign/fpdi-fpdf": "^2.0",
