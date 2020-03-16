@@ -23,10 +23,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
 {
 
     private $propertyAccess;
+    private $twig;
 
-    public function __construct(PropertyAccessor $accessor)
+    public function __construct(PropertyAccessor $accessor, \Twig\Environment $twig)
     {
         $this->propertyAccess = $accessor;
+        $this->twig = $twig;
     }
 
     private function compile(iterable $params, TemplateProcessor $templateProcessor, array $options)
@@ -64,6 +66,15 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $this->compile($params, $templateProcessor, $options);
         $templateProcessor->saveAs($tmpFile);
+
+        if($options['twig'] ?? false) {
+            $process = new Process(['unoconv', '-o', $tmpFile . '.html', '-f', 'html', $tmpFile]);
+            $process->run();
+            $template = $this->twig->createTemplate(\file_get_contents($tmpFile . '.html'));
+            file_put_contents($tmpFile . '.html.twig', $template->render($params));
+            $tmpFile = $tmpFile . '.html.twig';
+        }
+
         $process = new Process(['unoconv','-o',$savePath, '-f', 'pdf', $tmpFile]);
         $process->run();
         if(!$process->isSuccessful()){

@@ -10,7 +10,7 @@ services:
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
         class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
         arguments: [ '@property_accessor']
-        tags: ['lle.pdf.generator']
+        tags: ['lle.pdf.generator','@twig']
 
     Lle\PdfGeneratorBundle\Generator\TcpdfGenerator:
         tags: ['lle.pdf.generator']
