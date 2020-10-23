@@ -13,6 +13,16 @@ class Signature
     private $image = null;
     private $position = [];
 
+    /**
+     * @var int[]|null background color
+     */
+    private $bgColor = null;
+
+    /**
+     * @var int[]|null signature color
+     */
+    private $sgColor = null;
+
     public function __construct(string $certificate = null, string $password = null, array $data = [], ?string $image = null, ?array $position = null)
     {
         $this->data = $data;
@@ -91,8 +101,13 @@ class Signature
     public function setPoints(array $pointsPolygones, ?array $position = null): self{
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $image = imagecreate(200,100);
-        $bg   = imagecolorallocate($image, 255, 255, 255);
-        $sg = imagecolorallocate($image, 0, 0, 0);
+        $bg  = $this->bgColor
+            ? imagecolorallocatealpha($image, ...$this->bgColor)
+            : imagecolorallocate($image, 255, 255, 255);
+
+        $sg = $this->sgColor
+            ? imagecolorallocatealpha($image, ...$this->sgColor)
+            : imagecolorallocate($image, 0, 0, 0);
         imagefilledrectangle($image, 0, 0, 249, 249, $bg);
 
         foreach($pointsPolygones as $points) {
@@ -174,7 +189,53 @@ class Signature
         return $pdf;
     }
 
+    /**
+     * @return int[]|null
+     */
+    public function getBgColor(): ?array
+    {
+        return $this->bgColor;
+    }
 
+    /**
+     * Call this **BEFORE** setting points/segments
+     * Allows to set the background color (default opaque white)
+     *
+     * @param int $red
+     * @param int $green
+     * @param int $blue
+     * @param int $alpha
+     * @return $this
+     */
+    public function setBgColor(int $red, int $green, int $blue, ?int $alpha = 0): self
+    {
+        $this->bgColor = [$red, $green, $blue, $alpha];
 
+        return $this;
+    }
 
+    /**
+     * @return int[]|null
+     */
+    public function getSgColor(): ?array
+    {
+        return $this->sgColor;
+    }
+
+    /**
+     * Call this **BEFORE** setting points/segments
+     * Allows to set the signature color (default opaque black)
+     *
+     * @param int $red
+     * @param int $green
+     * @param int $blue
+     * @param int $alpha
+     * @return $this
+     */
+    public function setSgColor(int $red, int $green, int $blue, ?int $alpha = 0): self
+    {
+        $this->sgColor = [$red, $green, $blue, $alpha];
+
+        return $this;
+    }
 }
