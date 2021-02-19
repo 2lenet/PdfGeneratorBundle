@@ -143,7 +143,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             $value = $value->format('d/m/Y');
         }
 
-        return is_string($value) ? htmlspecialchars($value) : $value;
+        return $value;
     }
 
     private function setVar(TemplateProcessor $templateProcessor, $variable, $root, $var, $match)
@@ -155,11 +155,9 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             $value = $this->getValue($root, $var);
 
             if ($value instanceof AbstractElement) {
-                // This is a complex block
                 $templateProcessor->setComplexBlock($variable, $value);
             } else {
-                // This is a simple string
-                $templateProcessor->setValue($variable, $value);
+                $templateProcessor->setValue($variable, htmlspecialchars($value));
             }
         }
     }
