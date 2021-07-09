@@ -4,6 +4,7 @@ namespace Lle\PdfGeneratorBundle\Generator;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
+use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Lib\Signature;
 use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -55,6 +56,7 @@ class PdfGenerator
                 if(isset($this->generators[$types[$k] ?? $types[0]])){
                     $generator = $this->generators[$types[$k] ?? $types[0]];
                 }else{
+                    /** @var PdfGeneratorInterface $generator */
                     $generator = $this->generators[$this->getDefaultgenerator()];
                 }
                 
@@ -79,7 +81,7 @@ class PdfGenerator
     {
         $model = $this->getRepository()->findOneBy($this->getCriteria($code));
         if ($model == null) {
-            throw new \Exception("no model found (".$code.")");
+            throw new ModelNotFoundException("no model found (".$code.")");
         }
         return $this->generateByModel($model, $datas);
 

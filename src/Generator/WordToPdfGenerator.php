@@ -3,13 +3,13 @@
 namespace Lle\PdfGeneratorBundle\Generator;
 
 use Lle\PdfGeneratorBundle\Lib\PdfIterable;
+use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use PhpOffice\PhpWord\Element\AbstractElement;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Twig\Environment;
-
 
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
@@ -92,11 +92,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     {
         if (!file_exists($source)) {
             if (!file_exists($source . '.docx')) {
-                throw new \Exception($source . '(.docx) not found');
+                throw new ModelNotFoundException($source . '(.docx) not found');
             } else {
                 $source = $source . '.docx';
             }
         }
+
         $this->wordToPdf($source, $params, $savePath, $options);
     }
 
