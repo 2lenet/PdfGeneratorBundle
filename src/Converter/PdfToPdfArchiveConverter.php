@@ -9,20 +9,20 @@ use Twig\Environment;
 
 class PdfToPdfArchiveConverter
 {
-    const ZUGFERD_XML_FILE_NAME = "zugferd-invoice.xml";
+    const ZUGFERD_XML_FILE_NAME = 'zugferd-invoice.xml';
 
     /** @var Environment $twig */
     protected $twig;
-    
+
     public function __construct(Environment $twig)
     {
         $this->twig = $twig;
     }
 
     /**
-     * Converti un PDF en PDF/A-3b respectant les normes ZUGFeRD
+     * Converti un PDF en PDF/A-3B respectant les normes ZUGFeRD
      *
-     * @param string $invoicePdf chemin vers le pdf
+     * @param string $invoicePdf chemin vers le pdf de la facture
      * @param string $zugferdXml xml de la facture
      * @param array $metadata
      * @return string chemin vers le pdf généré
@@ -41,28 +41,32 @@ class PdfToPdfArchiveConverter
         //attache le xml au pdf
         $zugferdPdf->attachStreamReader($xmlStreamReader, self::ZUGFERD_XML_FILE_NAME);
         //ajout des xmp pour la validation PDF/A
-        $zugferdPdf->addXMLMetadata($this->prepareXMLMetadata(array_merge($metadata, [
-            'createdAt' => $zugferdPdf->getFormattedCreatedAt(),
-            'updatedAt' => $zugferdPdf->getFormattedCreatedAt()
+        $zugferdPdf->addXMLMetadata($this->prepareZugferdMetadata(array_merge($metadata, [
+            'createdAt' => $zugferdPdf->getCreatedAt(),
+            'updatedAt' => $zugferdPdf->getCreatedAt(),
+            'PDFAPart' => $zugferdPdf->getPart(),
+            'PDFAConformance' => $zugferdPdf->getConformance()
         ])));
+        //génération du pdf
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
         $zugferdPdf->Output($tmpFile,'F');
         return $tmpFile;
     }
 
-    protected function prepareXMLMetadata($metadata): string
+    protected function prepareZugferdMetadata($metadata): string
     {
         $metadata = [
-            "xmlName" => self::ZUGFERD_XML_FILE_NAME,
-            "version" => $metadata["version"] ?? "2.0",
-            "conformanceLevel" => $metadata["conformanceLevel"] ?? "BASIC",
-            "title" => $metadata["title"] ?? "zugferd-invoice",
-            "description" => $metadata["title"] ?? "Description",
-            "creator" => $metadata["creator"] ?? "Creator",
-            "creator" => $metadata["description"] ?? "Description",
-            "createdAt" => $metadata["createdAt"] ?? "",
-            "updatedAt" => $metadata["updatedAt"] ?? "",
+            'xmlName' => self::ZUGFERD_XML_FILE_NAME,
+            'version' => $metadata['version'] ?? '2.0',
+            'conformanceLevel' => $metadata['conformanceLevel'] ?? 'BASIC',
+            'title' => $metadata['title'] ?? 'zugferd-invoice',
+            'description' => $metadata['title'] ?? 'zugferd-invoice',
+            'creator' => $metadata['creator'] ?? 'Creator',
+            'createdAt' => $metadata['createdAt'] ?? new \DateTime(),
+            'updatedAt' => $metadata['updatedAt'] ?? new \DateTime(),
+            'PDFAPart' => $metadata['PDFAPart'] ?? '3',
+            'PDFAConformance' => $metadata['PDFAConformance'] ?? 'B'
         ];
-        return $this->twig->render('@LlePdfGenerator/pdf_archive/zugferd_pdf_xmp.xml.twig', ["metadata" => $metadata]);
+        return $this->twig->render('@LlePdfGenerator/pdf_archive/zugferd_pdf_xmp.xml.twig', ['metadata' => $metadata]);
     }
 }

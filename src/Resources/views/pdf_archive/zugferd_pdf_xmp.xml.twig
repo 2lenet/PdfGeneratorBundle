@@ -10,10 +10,7 @@
 
     <!-- PDF/A extension schema description for the Factur-X schema.
        It is crucial for PDF/A-3 conformance. Don't touch! -->
-    <rdf:Description rdf:about=""
-                     xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
-                     xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
-                     xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#">
+    <rdf:Description xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/" xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#" xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#" rdf:about="">
         <pdfaExtension:schemas>
             <rdf:Bag>
                 <rdf:li rdf:parseType="Resource">
@@ -26,7 +23,7 @@
                                 <pdfaProperty:name>DocumentFileName</pdfaProperty:name>
                                 <pdfaProperty:valueType>Text</pdfaProperty:valueType>
                                 <pdfaProperty:category>external</pdfaProperty:category>
-                                <pdfaProperty:description>{{ metadata.xmlName }}</pdfaProperty:description>
+                                <pdfaProperty:description>name of the embedded XML invoice file</pdfaProperty:description>
                             </rdf:li>
                             <rdf:li rdf:parseType="Resource">
                                 <pdfaProperty:name>DocumentType</pdfaProperty:name>
@@ -38,13 +35,13 @@
                                 <pdfaProperty:name>Version</pdfaProperty:name>
                                 <pdfaProperty:valueType>Text</pdfaProperty:valueType>
                                 <pdfaProperty:category>external</pdfaProperty:category>
-                                <pdfaProperty:description>{{ metadata.version }}</pdfaProperty:description>
+                                <pdfaProperty:description>The actual version of the Factur-X XML schema</pdfaProperty:description>
                             </rdf:li>
                             <rdf:li rdf:parseType="Resource">
                                 <pdfaProperty:name>ConformanceLevel</pdfaProperty:name>
                                 <pdfaProperty:valueType>Text</pdfaProperty:valueType>
                                 <pdfaProperty:category>external</pdfaProperty:category>
-                                <pdfaProperty:description>{{ metadata.conformanceLevel }}</pdfaProperty:description>
+                                <pdfaProperty:description>The conformance level of the embedded Factur-X data</pdfaProperty:description>
                             </rdf:li>
                         </rdf:Seq>
                     </pdfaSchema:property>
@@ -55,8 +52,8 @@
 
     <!-- PDF/A Metadata -->
     <rdf:Description xmlns:pdfaid="http://www.aiim.org/pdfa/ns/id/" rdf:about="">
-        <pdfaid:part>3</pdfaid:part>
-        <pdfaid:conformance>B</pdfaid:conformance>
+        <pdfaid:part>{{ metadata.PDFAPart }}</pdfaid:part>
+        <pdfaid:conformance>{{ metadata.PDFAConformance }}</pdfaid:conformance>
     </rdf:Description>
     <rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" rdf:about="">
         <dc:title>
@@ -80,8 +77,8 @@
         <pdf:Producer>FPDF 1.84</pdf:Producer>
     </rdf:Description>
     <rdf:Description xmlns:xmp="http://ns.adobe.com/xap/1.0/" rdf:about="">
-        <xmp:CreatorTool>zugferd php lib by Lle\PdfGeneratorBundle</xmp:CreatorTool>
-        <xmp:CreateDate>{{ metadata.createdAt }}</xmp:CreateDate>
-        <xmp:ModifyDate>{{ metadata.updatedAt }}</xmp:ModifyDate>
+        <xmp:CreatorTool>Lle\PdfGeneratorBundle</xmp:CreatorTool>
+        <xmp:CreateDate>{{ metadata.createdAt|date('Y\\-m\\-d\\TH:i:sP') }}</xmp:CreateDate>
+        <xmp:ModifyDate>{{ metadata.updatedAt|date('Y\\-m\\-d\\TH:i:sP') }}</xmp:ModifyDate>
     </rdf:Description>
 </rdf:RDF>

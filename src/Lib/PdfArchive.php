@@ -24,20 +24,28 @@ class PdfArchive extends Fpdi
     /** @var int $n_files */
     protected $n_files;
 
-    /** @var bool $open_attachment_pane */
-    protected $open_attachment_pane = false;
-
-    /** @var array $pdf_metadata_infos */
-    protected $pdf_metadata_infos = array();
-
     /** @var \DateTime $createdAt */
     protected $createdAt;
 
-    public function __construct($orientation = 'P', $unit = 'mm', $size = 'A4', $version = "1.7")
-    {
+    /** @var string $part */
+    protected $part;
+
+    /** @var string $conformance */
+    protected $conformance;
+
+    public function __construct(
+        $orientation = 'P',
+        $unit = 'mm',
+        $size = 'A4',
+        $version = "1.7",
+        $part = "3",
+        $conformance = "B"
+    ) {
         parent::__construct($orientation, $unit, $size);
         $this->createdAt = new \DateTime();
         $this->PDFVersion = sprintf('%.1F', $version);
+        $this->part = $part;
+        $this->conformance = $conformance;
     }
 
     /**
@@ -49,10 +57,10 @@ class PdfArchive extends Fpdi
      */
     public function attachStreamReader(
         StreamReader $file,
-        $name = "",
-        $desc = "",
-        $relationship = "Alternative",
-        $mimetype = "text#2Fxml"
+                     $name = "",
+                     $desc = "",
+                     $relationship = "Alternative",
+                     $mimetype = "text#2Fxml"
     ) {
         $this->attachments[] = [
             'file' => $file,
@@ -69,9 +77,30 @@ class PdfArchive extends Fpdi
         return 'D:'.substr($date,0,-2)."'".substr($date,-2)."'";
     }
 
+    public function getCreatedAt(): \DateTime
+    {
+        return $this->createdAt;
+    }
+
     public function addXMLMetadata(string $xmlMetadata)
     {
         $this->metadata_xmp[] = $xmlMetadata;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPart()
+    {
+        return $this->part;
+    }
+
+    /**
+     * @return string
+     */
+    public function getConformance()
+    {
+        return $this->conformance;
     }
 
     protected function _put_files()
@@ -82,11 +111,6 @@ class PdfArchive extends Fpdi
             $this->_put_file_stream($info);
         }
         $this->_put_file_dictionary();
-    }
-
-    public function openAttachmentPane()
-    {
-        $this->open_attachment_pane = true;
     }
 
     protected function _put_file_stream(array $file_info)
@@ -158,18 +182,16 @@ class PdfArchive extends Fpdi
         $this->_put('>>');
         $this->_put('endobj');
     }
-    
+
     protected function _put_metadata()
     {
         $s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>'."\n";
         $s .= '<x:xmpmeta xmlns:x="adobe:ns:meta/">'."\n";
-        $s .= '<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'."\n";
         $this->_newobj();
         $this->description_index = $this->n;
         foreach ($this->metadata_xmp as $i => $desc) {
             $s .= $desc."\n";
         }
-        $s .= '</rdf:RDF>'."\n";
         $s .= '</x:xmpmeta>'."\n";
         $s .= '<?xpacket end="w"?>';
         $this->_put('<<');
@@ -247,7 +269,7 @@ class PdfArchive extends Fpdi
         if (0 != $this->output_intent_index) {
             $this->_put(sprintf('/OutputIntents [%s 0 R]', $this->output_intent_index));
         }
-        if ($this->open_attachment_pane) {
+        if (count($this->attachments) > 0) {
             $this->_put('/PageMode /UseAttachments');
         }
     }
@@ -267,18 +289,6 @@ class PdfArchive extends Fpdi
     {
         parent::_putheader();
         $this->_put("%\xE2\xE3\xCF\xD3");
-    }
-
-    /**
-     * Redéfini la méthode _putinfo
-     */
-    protected function _putinfo()
-    {
-        $this->metadata['Producer'] = 'FPDF '.FPDF_VERSION;
-        $this->metadata['CreationDate'] = $this->getFormattedCreatedAt();
-        $this->metadata['ModDate'] = $this->getFormattedCreatedAt();
-        foreach($this->metadata as $key=>$value)
-            $this->_put('/'.$key.' '.$this->_textstring($value));
     }
 
 }
