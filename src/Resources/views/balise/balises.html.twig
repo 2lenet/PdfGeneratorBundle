@@ -1,0 +1,31 @@
+{% extends  "base.html.twig" %}
+
+{% block page_title %}{{ 'title.pdf_generator_balises_list' | trans({}, 'PdfGeneratorBundle') }}{% endblock %}
+
+{% block main %}
+    {{ parent() }}
+    <div class="jumbotron">
+        <h4 class="text-center"><i class="far fa-question-circle"></i> {{ 'field.baliseHowTo'|trans }}</h4>
+        <h5 class="text-center">{{ 'field.baliseExplanation'|trans({}, 'PdfGeneratorBundle') }}</h5>
+    </div>
+
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th scope="col">{{ 'field.baliseName'|trans }}</th>
+            <th scope="col">{{ 'field.baliseCaption'|trans }}</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for baliseArray in balisesArray %}
+            {% for key, value in baliseArray %}
+                {% if not (key starts with 'structure_change.') %}
+                    <tr>
+                        <td>{{ "${"~key~"}" }}</td>
+                        <td>{{ value|trans }}</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </table>
+{% endblock %}

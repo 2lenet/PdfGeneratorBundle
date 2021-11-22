@@ -31,5 +31,6 @@ class LlePdfGeneratorExtension extends Extension
         $container->setParameter( 'lle.pdf.default_generator', $config[ 'default_generator' ] );
         $container->setParameter( 'lle.pdf.path', $config[ 'path' ] );
         $container->setParameter( 'lle.pdf.class', $config[ 'class' ] );
+        $container->setParameter( 'lle.pdf.data_model', $config[ 'data_model' ] );
     }
 }
