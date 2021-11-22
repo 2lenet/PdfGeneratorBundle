@@ -1,0 +1,8 @@
+title:
+    pdf_generator_balises_list: "Liste des balises de documents"
+
+field:
+    baliseName: "Balise"
+    baliseCaption: "Référence"
+    baliseExplanation: "Dans vos modèles de documents, remplacez les champs correspondants par les balises suivantes."
+    baliseHowTo: "Comment utiliser les balises ?"

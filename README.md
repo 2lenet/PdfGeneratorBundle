@@ -33,6 +33,49 @@ lle_pdf_generator:
 ```
 if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on data/pdfmodel/mydoc.doc with word_to_pdf generator.
 
+## Configure your generic tags
+
+You can easily list the tags used in your models.
+
+To do this, simply declare the route to the page where the tags will be listed. The name of the route is "lle_pdf_generator_admin_balise".
+
+Example in Crudit:
+
+```php
+
+public function getListActions(): array
+    {
+        $actions = parent::getListActions();
+
+        array_unshift($actions, ListAction::new(
+            "action.balise",
+            Path::new('lle_pdf_generator_admin_balise'),
+            Icon::new("bookmark")
+        ));
+
+        return $actions;
+    }
+
+```
+
+To complete the list of tags, use Symfony annotation group "**pdfgenerator**" in your entities. For example:
+
+```php
+<?php
+
+namespace App\Entity
+
+use Symfony\Component\Serializer\Annotation\Groups;
+
+class Commande
+{
+    /**
+     * @Groups({"pdfgenerator"})
+     */
+    private $type;
+}
+```
+
 ## Use it
 You can use the PDFgenerator with bdd or directly in code
 ```php
