@@ -24,8 +24,11 @@ class BaliseController extends AbstractController
     public function index()
     {
         $configDatas = Yaml::parseFile(__DIR__ . '/../../../../../config/packages/pdf_generator.yaml');
-        $dataModels = $configDatas['lle_pdf_generator']['data_model'];
-        $models = explode(",", $dataModels);
+        if (array_key_exists('data_models', $configDatas['lle_pdf_generator'])) {
+            $models = $configDatas['lle_pdf_generator']['data_models'];
+        } else {
+            $models = [0 => 'pdfgenerator'];
+        }
 
         return $this->render('@LlePdfGenerator/balise/index.html.twig', [
             'models' => $models
