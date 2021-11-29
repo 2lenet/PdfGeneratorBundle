@@ -50,7 +50,7 @@ class PdfGenerator
         $pdf = new PdfMerger();
         foreach($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
-                
+
                 // instanciate the generator type from model type
                 $types = explode(',', $model->getType());
                 if(isset($this->generators[$types[$k] ?? $types[0]])){
@@ -59,7 +59,7 @@ class PdfGenerator
                     /** @var PdfGeneratorInterface $generator */
                     $generator = $this->generators[$this->getDefaultgenerator()];
                 }
-                
+
                 $generator->setPdfPath($this->getPath());
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
                 $r = $generator->getRessource($ressource);
@@ -69,7 +69,7 @@ class PdfGenerator
         }
         return $pdf;
     }
-    
+
     public function generateByRessource($type, $ressource, iterable $parameters = []):PDFMerger{
         $model = $this->newInstance();
         $model->setType(is_array($type)? implode(',',$type):$type);
@@ -155,11 +155,18 @@ class PdfGenerator
         return $this->kernel->getProjectDir().'/'.$this->parameterBag->get('lle.pdf.path').'/';
     }
 
-    public function getDefaultGenerator():string{
+    public function getDefaultGenerator():string
+    {
         return $this->parameterBag->get('lle.pdf.default_generator');
     }
 
-    public function getTypes(): array{
+    public function getTypes(): array
+    {
         return array_keys($this->generators);
+    }
+
+    public function getDataModels(): array
+    {
+        return $this->parameterBag->get('lle.pdf.data_models');
     }
 }

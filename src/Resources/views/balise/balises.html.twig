@@ -1,12 +1,12 @@
 {% extends  "base.html.twig" %}
 
-{% block page_title %}{{ 'title.pdf_generator_balises_list' | trans({}, 'PdfGeneratorBundle') }}{% endblock %}
+{% block page_title %}{{ 'title.pdf_generator_balises_list'|trans }}{% endblock %}
 
 {% block main %}
     {{ parent() }}
     <div class="jumbotron">
         <h4 class="text-center"><i class="far fa-question-circle"></i> {{ 'field.baliseHowTo'|trans }}</h4>
-        <h5 class="text-center">{{ 'field.baliseExplanation'|trans({}, 'PdfGeneratorBundle') }}</h5>
+        <h5 class="text-center">{{ 'field.baliseExplanation'|trans }}</h5>
     </div>
 
     <table class="table table-striped">
