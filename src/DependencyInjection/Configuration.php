@@ -25,11 +25,14 @@ class Configuration implements ConfigurationInterface
             ->children()
             ->scalarNode('default_generator')->defaultValue('word_to_pdf')->end()
             ->scalarNode('path')->defaultValue('data/pdfmodel')->end()
-            ->scalarNode('class')->defaultValue(PdfModel::class)->end();
+            ->scalarNode('class')->defaultValue(PdfModel::class)->end()
+            ->arrayNode('data_models')
+                ->scalarPrototype()->end();
+
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
         // more information on that topic.
-        
+
         return $treeBuilder;
     }
 }

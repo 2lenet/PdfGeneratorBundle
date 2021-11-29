@@ -19,3 +19,6 @@ services:
         arguments: ["@doctrine.orm.default_entity_manager",  '@kernel','@parameter_bag', !tagged lle.pdf.generator]
 
     Lle\PdfGeneratorBundle\Converter\PdfToPdfArchiveConverter: ~
+
+    Lle\PdfGeneratorBundle\Controller\:
+        resource: '../../Controller'

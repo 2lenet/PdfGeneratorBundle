@@ -1,0 +1,12 @@
+{% extends  "base.html.twig" %}
+
+{% block page_title %}{{ 'title.pdf_generator_choose_data_model' | trans({}, 'PdfGeneratorBundle') }}{% endblock %}
+
+{% block main %}
+    {{ parent() }}
+    <div class="text-center">
+        {% for model in models %}
+            <a href="{{ path('lle_pdf_generator_admin_model_balise', {'module': model|trim}) }}" class="btn btn-primary">{{ model }}</a>
+        {% endfor %}
+    </div>
+{% endblock %}

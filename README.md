@@ -25,13 +25,88 @@ lle_pdf_generator:
   class: 'Lle\PdfGeneratorBundle\Entity\PdfModel'
 ```
 
-add routing (for show the ressource use <a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">)
+add routing (for show the ressource use ```<a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">```)
+
 ```yaml
 lle_pdf_generator:
     resource: "@LlePdfGeneratorBundle/Resources/routing/routes.yaml"
     prefix: /
 ```
 if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on data/pdfmodel/mydoc.doc with word_to_pdf generator.
+
+## Configure your tags
+
+You can easily list the tags used in your models.
+
+To do this, simply declare the route to the page where the tags will be listed. The name of the route is "lle_pdf_generator_admin_balise".
+
+Example in Crudit:
+
+```php
+
+public function getListActions(): array
+    {
+        $actions = parent::getListActions();
+
+        array_unshift($actions, ListAction::new(
+            "action.balise",
+            Path::new('lle_pdf_generator_admin_balise'),
+            Icon::new("bookmark")
+        ));
+
+        return $actions;
+    }
+
+```
+
+If you use several document templates linked to different modules, you can declare your annotations in the pdf_generator.yaml 
+of your project:
+
+```yaml
+lle_pdf_generator:
+  path: "data/pdfmodel"
+  default_generator: "word_to_pdf"
+  data_models:
+    - facture
+    - commande
+```
+
+To complete the list of tags, use Symfony annotations declared in your pdf_generator.yaml file. For example: 
+
+```php
+<?php
+
+namespace App\Entity
+
+use Symfony\Component\Serializer\Annotation\Groups;
+
+class Commande
+{
+    /**
+     * @Groups({"commande"})
+     */
+    private $type;
+}
+```
+
+If you only have on template or one module using several templates, you do not have to declare "data_models" in the pdf_generator.yaml
+file. By default, the Symfony annotation will be "**pdfgenerator**". In your entity, you will then have:
+
+```php
+<?php
+
+namespace App\Entity
+
+use Symfony\Component\Serializer\Annotation\Groups;
+
+class Commande
+{
+    /**
+     * @Groups({"pdfgenerator"})
+     */
+    private $type;
+}
+```
 
 ## Use it
 You can use the PDFgenerator with bdd or directly in code
