@@ -13,7 +13,7 @@ use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Yaml\Yaml;
 
 /**
- * @Route("/admin")
+ * @Route("/admin/pdfgen_balise")
  */
 class BaliseController extends AbstractController
 {

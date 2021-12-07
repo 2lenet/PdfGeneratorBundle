@@ -14,11 +14,11 @@ lle_pdf_generator_check_pdf:
         _controller: Lle\PdfGeneratorBundle\Action\CheckPdfAction
 
 lle_pdf_generator_admin_balise:
-    path: /admin/balise
+    path: /admin/pdfgen_balise/balise
     defaults:
         _controller: Lle\PdfGeneratorBundle\Controller\BaliseController::index
 
 lle_pdf_generator_admin_model_balise:
-    path: /admin/{module}
+    path: /admin/pdfgen_balise/{module}
     defaults:
         _controller: Lle\PdfGeneratorBundle\Controller\BaliseController::getBalises
