@@ -23,7 +23,7 @@
         "dompdf/dompdf": "^1.1",
         "tecnickcom/tcpdf": "*",
         "setasign/fpdi-fpdf": "^2.*",
-        "setasign/tfpdf":"1.25",
+        "setasign/tfpdf": "1.25",
         "vich/uploader-bundle": "^1.8",
         "symfony/yaml": "^4.0|^5.0|^6.0"
     },
