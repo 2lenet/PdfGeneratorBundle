@@ -38,14 +38,11 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     $i = 0;
                     foreach ($iterator as $item) {
                         if ($this->isImgPath($variable, $matches)) {
-                            $variable = '@img[' . $matches[1] . ']#' . ++$i . ($matches[2] ?? '');
+                            $iteratedVariable = '@img[' . $matches[1] . ']#' . ++$i . ($matches[2] ?? '');
                         } else {
-                            if (strpos($variable, '#') !== false) {
-                                $variable = substr($variable, 0, strpos($variable, '#'));
-                            }
-                            $variable .= '#' . ++$i;
+                            $iteratedVariable = $variable . '#' . ++$i;
                         }
-                        $this->setVar($templateProcessor, $variable, $item, $var, $img);
+                        $this->setVar($templateProcessor, $iteratedVariable, $item, $var, $img);
                     }
                 } else {
                     $this->setVar($templateProcessor, $variable, $params, ($var) ? $root . '.' . $var : $root, $img);
