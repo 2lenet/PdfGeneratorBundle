@@ -37,7 +37,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                     }
                     $i = 0;
                     foreach ($iterator as $item) {
-                        $this->setVar($templateProcessor, $variable . '#' . ++$i, $item, $var, $img);
+                        if ($this->isImgPath($variable, $matches)) {
+                            $iteratedVariable = '@img[' . $matches[1] . ']#' . ++$i . ($matches[2] ?? '');
+                        } else {
+                            $iteratedVariable = $variable . '#' . ++$i;
+                        }
+                        $this->setVar($templateProcessor, $iteratedVariable, $item, $var, $img);
                     }
                 } else {
                     $this->setVar($templateProcessor, $variable, $params, ($var) ? $root . '.' . $var : $root, $img);
@@ -108,9 +113,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
 
     private function getPathVar($variable)
     {
-        if (mb_substr($variable, 0, 4, "UTF-8") === '@img') {
-            preg_match('#^@img\[([A-Za-z0-9\.\[\]]+)\](:(\d+)x(\d+))?$#', $variable, $match);
-            $variable = $match[1];
+        if ($this->isImgPath($variable, $matches)) {
+            $variable = $matches[1];
         }
         $exp = explode('.', $variable, 2);
         $root = '[' . $exp[0] . ']';
@@ -161,5 +165,10 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $templateProcessor->setValue($variable, htmlspecialchars($value));
             }
         }
+    }
+
+    private function isImgPath(string $path, &$matches)
+    {
+        return preg_match('#^@img\[([A-Za-z0-9\.\[\]]+)\](:(\d+)x(\d+))?$#', $path, $matches);
     }
 }
