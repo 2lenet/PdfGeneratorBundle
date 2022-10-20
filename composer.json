@@ -18,7 +18,6 @@
         "php": ">=7.2 || ^8.0",
         "symfony/property-access": "^4.1 || ^5.0 || ^6.0",
         "phpoffice/phpword": "^0.18",
-        "laminas/laminas-stdlib": "^3.0",
         "alexanderpavlov/pdfmerger": "^1.0.5",
         "dompdf/dompdf": "^1.1",
         "tecnickcom/tcpdf": "*",
