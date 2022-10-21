@@ -1,12 +1,12 @@
 <?php
+
 namespace Lle\PdfGeneratorBundle\Entity;
 
 use Symfony\Component\HttpFoundation\File\File;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
-trait PdfModelCustomFileTrait{
-
-
+trait PdfModelCustomFileTrait
+{
     /**
      * @var int
      *
@@ -215,7 +215,6 @@ trait PdfModelCustomFileTrait{
     {
         $this->checkFile = $checkFile;
     }
-    
 
     /**
      * @return string|null
@@ -232,5 +231,4 @@ trait PdfModelCustomFileTrait{
     {
         $this->datamodel = $datamodel;
     }
-        
 }
