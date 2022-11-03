@@ -12,8 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class CreateModelCommand extends Command
 {
-    private $em;
-    private $generator;
+    private EntityManagerInterface $em;
+
+    private PdfGenerator $generator;
 
     protected static $defaultName = 'lle:pdf-generator:create-model';
 
@@ -23,24 +24,29 @@ final class CreateModelCommand extends Command
         $this->em = $em;
         $this->generator = $generator;
     }
+
     protected function configure()
     {
-        $this
-            ->setDescription('Create a new pdf model');
-        ;
+        $this->setDescription('Create a new pdf model');;
     }
-    protected function execute(InputInterface $input, OutputInterface $output)
+
+    protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $io = new SymfonyStyle($input, $output);
+
         $model = $this->generator->newInstance();
         $model->setCode($io->ask('What is the code'));
-        $io->note('The pdf path is '. $this->generator->getPath());
+
+        $io->note('The pdf path is ' . $this->generator->getPath());
+
         $model->setPath($io->ask('What is the ressource'));
         $model->setLibelle($io->ask('What is the libelle'));
         $model->setType($io->choice('What is the type', $this->generator->getTypes(), $this->generator->getDefaultGenerator()));
         $model->setDescription($io->ask('What is the description'));
+
         $this->em->persist($model);
         $this->em->flush();
+
         $io->success('Model is create !');
     }
 }

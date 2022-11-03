@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Lle\PdfGeneratorBundle\Action;
 
-
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Entity\PdfModel;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
@@ -14,10 +13,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
-
 final class ShowPdfAction
 {
-    private $pdfGenerator;
+    private PdfGenerator $pdfGenerator;
 
     public function __construct(PdfGenerator $pdfGenerator)
     {
@@ -27,11 +25,11 @@ final class ShowPdfAction
     public function __invoke(Request $request): Response
     {
         $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
-        if($model){
+
+        if ($model) {
             return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
-        }else{
+        } else {
             throw new NotFoundHttpException();
         }
     }
-
 }
