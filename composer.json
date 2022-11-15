@@ -21,7 +21,7 @@
         "laminas/laminas-stdlib": "^3.0",
         "alexanderpavlov/pdfmerger": "^1.0.5",
         "dompdf/dompdf": "^1.1",
-        "tecnickcom/tcpdf": "*",
+        "tecnickcom/tcpdf": "dev-main",
         "setasign/fpdi-fpdf": "^2.3.0",
         "setasign/tfpdf": "^1.32",
         "vich/uploader-bundle": "^1.8",
