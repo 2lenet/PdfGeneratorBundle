@@ -23,11 +23,6 @@
         "dompdf/dompdf": "^0.8",
         "tecnickcom/tcpdf": "^6.0",
         "vich/uploader-bundle": "^1.8",
-        "twig/twig": "3.x-dev",
-        "symfony/process": "6.2.x-dev",
-        "doctrine/orm": "3.0.x-dev",
-        "symfony/http-foundation": "6.2.x-dev",
-        "alexanderpavlov/pdfmerger": "dev-master"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
