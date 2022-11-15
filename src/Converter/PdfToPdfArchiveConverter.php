@@ -11,35 +11,32 @@ class PdfToPdfArchiveConverter
 {
     const ZUGFERD_XML_FILE_NAME = 'zugferd-invoice.xml';
 
-    /** @var Environment $twig */
-    protected $twig;
-
-    public function __construct(Environment $twig)
+    public function __construct(protected Environment $twig)
     {
-        $this->twig = $twig;
     }
 
     /**
      * Converti un PDF en PDF/A-3B respectant les normes ZUGFeRD
-     *
-     * @param string $invoicePdf chemin vers le pdf de la facture
-     * @param string $zugferdXml xml de la facture
-     * @param array $metadata
-     * @return string chemin vers le pdf généré
      */
     public function convertToZugferdPdf(string $invoicePdf, string $zugferdXml, array $metadata): string
     {
         $zugferdPdf = new PdfArchive();
+
         $pageCount = $zugferdPdf->setSourceFile($invoicePdf);
+
         //recopie les pages du pdf original
         for ($i = 1; $i <= $pageCount; ++$i) {
             $tplIdx = $zugferdPdf->importPage($i, '/MediaBox');
+
             $zugferdPdf->AddPage();
             $zugferdPdf->useTemplate($tplIdx);
         }
+
         $xmlStreamReader = StreamReader::createByString($zugferdXml);
+
         //attache le xml au pdf
         $zugferdPdf->attachStreamReader($xmlStreamReader, self::ZUGFERD_XML_FILE_NAME);
+
         //ajout des xmp pour la validation PDF/A
         $zugferdPdf->addXMLMetadata($this->prepareZugferdMetadata(array_merge($metadata, [
             'createdAt' => $zugferdPdf->getCreatedAt(),
@@ -47,9 +44,12 @@ class PdfToPdfArchiveConverter
             'PDFAPart' => $zugferdPdf->getPart(),
             'PDFAConformance' => $zugferdPdf->getConformance()
         ])));
+
         //génération du pdf
-        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp').'.pdf';
-        $zugferdPdf->Output($tmpFile,'F');
+        $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
+
+        $zugferdPdf->Output($tmpFile, 'F');
+
         return $tmpFile;
     }
 
@@ -67,6 +67,7 @@ class PdfToPdfArchiveConverter
             'PDFAPart' => $metadata['PDFAPart'] ?? '3',
             'PDFAConformance' => $metadata['PDFAConformance'] ?? 'B'
         ];
+
         return $this->twig->render('@LlePdfGenerator/pdf_archive/zugferd_pdf_xmp.xml.twig', ['metadata' => $metadata]);
     }
 }
