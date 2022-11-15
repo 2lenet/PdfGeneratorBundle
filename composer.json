@@ -21,7 +21,7 @@
         "phpoffice/phpword": "^0.17 || ^0.18",
         "laminas/laminas-stdlib": "^2.0 || ^3.0",
         "dompdf/dompdf": "^0.8",
-        "tecnickcom/tcpdf": "dev-main",
+        "tecnickcom/tcpdf": "^6.0",
         "vich/uploader-bundle": "^1.8",
         "twig/twig": "3.x-dev",
         "symfony/process": "6.2.x-dev",
