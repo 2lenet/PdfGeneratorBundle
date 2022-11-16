@@ -53,7 +53,7 @@ class PdfToPdfArchiveConverter
         return $tmpFile;
     }
 
-    protected function prepareZugferdMetadata($metadata): string
+    protected function prepareZugferdMetadata(array $metadata): string
     {
         $metadata = [
             'xmlName' => self::ZUGFERD_XML_FILE_NAME,

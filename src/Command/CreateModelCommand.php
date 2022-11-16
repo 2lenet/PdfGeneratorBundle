@@ -21,7 +21,7 @@ final class CreateModelCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this->setDescription('Create a new pdf model');
     }

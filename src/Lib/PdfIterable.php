@@ -7,7 +7,7 @@ use \PDFMerger as Base;
 
 class PdfIterable implements \Iterator, \Countable
 {
-    private $position;
+    private int $position;
 
     public function __construct(private iterable $data)
     {

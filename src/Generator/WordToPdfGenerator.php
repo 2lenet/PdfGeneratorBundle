@@ -9,6 +9,7 @@ use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Twig\Environment;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
@@ -20,7 +21,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     {
     }
 
-    private function compile(iterable $params, TemplateProcessor $templateProcessor, array $options)
+    private function compile(iterable $params, TemplateProcessor $templateProcessor, array $options): void
     {
         $duplicate = [];
 
@@ -59,7 +60,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    private function wordToPdf(string $source, iterable $params, string $savePath, array $options)
+    private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
     {
         $templateProcessor = new TemplateProcessor($source);
 
@@ -120,7 +121,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return 'word_to_pdf';
     }
 
-    private function getPathVar($variable)
+    private function getPathVar(string $variable): array
     {
         if ($this->isImgPath($variable, $matches)) {
             $variable = $matches[1];
@@ -133,9 +134,9 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return [$exp, $root, $var, null];
     }
 
-    private function getImg($root, $var, $match)
+    private function getImg(object|array $root, string|PropertyPathInterface $var, array $match): array
     {
-        $value = ($var) ? $this->propertyAccess->getValue($root, $var) : (string)$root;
+        $value = (string)$this->propertyAccess->getValue($root, $var);
 
         if (substr($value, 0, 1) === '/') {
             $img = ['path' => $value];
@@ -151,12 +152,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return $img;
     }
 
-    private function getValue($root, $var)
+    private function getValue(object|array $root, string|PropertyPathInterface $var): mixed
     {
+        $value = null;
+
         if ($var) {
             $value = $this->propertyAccess->getValue($root, $var);
-        } else {
-            $value = (string)$root;
         }
 
         if ($value instanceof \DateTime) {
@@ -166,7 +167,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return $value;
     }
 
-    private function setVar(TemplateProcessor $templateProcessor, $variable, $root, $var, $match)
+    private function setVar(TemplateProcessor $templateProcessor, string $variable, array|object $root, string|PropertyPathInterface $var, array $match): void
     {
         if (mb_substr($variable, 0, 4, "UTF-8") === '@img') {
             $img = $this->getImg($root, $var, $match);
@@ -183,7 +184,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    private function isImgPath(string $path, &$matches)
+    private function isImgPath(string $path, array &$matches): false|int
     {
         return preg_match('#^@img\[([A-Za-z0-9\.\[\]]+)\](:(\d+)x(\d+))?$#', $path, $matches);
     }

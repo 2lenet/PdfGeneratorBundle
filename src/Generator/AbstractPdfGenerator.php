@@ -6,7 +6,7 @@ use PhpOffice\PhpWord\TemplateProcessor;
 
 abstract class AbstractPdfGenerator implements PdfGeneratorInterface
 {
-    protected $pdfPath;
+    protected string $pdfPath;
 
     public static function getName(): string
     {

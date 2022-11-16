@@ -26,13 +26,14 @@ class PdfArchive extends Fpdi
     protected string $conformance;
 
     public function __construct(
-        $orientation = 'P',
-        $unit = 'mm',
-        $size = 'A4',
-        $version = "1.7",
-        $part = "3",
-        $conformance = "B"
-    ) {
+        string $orientation = 'P',
+        string $unit = 'mm',
+        string $size = 'A4',
+        string $version = "1.7",
+        string $part = "3",
+        string $conformance = "B"
+    )
+    {
         parent::__construct($orientation, $unit, $size);
         $this->createdAt = new \DateTime();
         $this->PDFVersion = sprintf('%.1F', $version);
@@ -46,7 +47,8 @@ class PdfArchive extends Fpdi
         string $desc = "",
         string $relationship = "Alternative",
         string $mimetype = "text#2Fxml"
-    ) {
+    ): void
+    {
         $this->attachments[] = [
             'file' => $file,
             'name' => $name,
@@ -60,7 +62,7 @@ class PdfArchive extends Fpdi
     {
         $date = $this->createdAt->format('YmdHisO');
 
-        return 'D:'.substr($date,0,-2)."'".substr($date,-2)."'";
+        return 'D:' . substr($date, 0, -2) . "'" . substr($date, -2) . "'";
     }
 
     public function getCreatedAt(): \DateTime
@@ -68,7 +70,7 @@ class PdfArchive extends Fpdi
         return $this->createdAt;
     }
 
-    public function addXMLMetadata(string $xmlMetadata)
+    public function addXMLMetadata(string $xmlMetadata): void
     {
         $this->metadata_xmp[] = $xmlMetadata;
     }
@@ -83,7 +85,7 @@ class PdfArchive extends Fpdi
         return $this->conformance;
     }
 
-    protected function _put_files()
+    protected function _put_files(): void
     {
         foreach ($this->attachments as $i => &$info) {
             $this->_put_file_specification($info);
@@ -94,7 +96,7 @@ class PdfArchive extends Fpdi
         $this->_put_file_dictionary();
     }
 
-    protected function _put_file_stream(array $file_info)
+    protected function _put_file_stream(array $file_info): void
     {
         $this->_newobj();
         $this->_put('<<');
@@ -103,7 +105,7 @@ class PdfArchive extends Fpdi
         $this->_put('/Filter /FlateDecode');
 
         if ($file_info['subtype']) {
-            $this->_put('/Subtype /'.$file_info['subtype']);
+            $this->_put('/Subtype /' . $file_info['subtype']);
         }
 
         $this->_put('/Type /EmbeddedFile');
@@ -118,50 +120,50 @@ class PdfArchive extends Fpdi
             \fseek($stream, 0);
             $fc = stream_get_contents($stream);
         }
-        
+
         if (false === $fc) {
-            $this->Error('Cannot open file: '.$file_info['file']);
+            $this->Error('Cannot open file: ' . $file_info['file']);
         }
 
         //compression du contenu
         $fc = gzcompress($fc);
 
-        $this->_put('/Length '.strlen($fc));
+        $this->_put('/Length ' . strlen($fc));
         $this->_put("/Params <</ModDate (D:$md)>>");
         $this->_put('>>');
         $this->_putstream($fc);
         $this->_put('endobj');
     }
 
-    protected function _put_file_specification(array $file_info)
+    protected function _put_file_specification(array $file_info): void
     {
         $this->_newobj();
-        
+
 //        Never defined
 //        $this->file_spe_dictionnary_index = $this->n;
 
         $this->_put('<<');
-        $this->_put('/F ('.$this->_escape($file_info['name']).')');
+        $this->_put('/F (' . $this->_escape($file_info['name']) . ')');
         $this->_put('/Type /Filespec');
-        $this->_put('/UF '.$this->_textstring(utf8_encode($file_info['name'])));
+        $this->_put('/UF ' . $this->_textstring(utf8_encode($file_info['name'])));
 
         if ($file_info['relationship']) {
-            $this->_put('/AFRelationship /'.$file_info['relationship']);
+            $this->_put('/AFRelationship /' . $file_info['relationship']);
         }
 
         if ($file_info['desc']) {
-            $this->_put('/Desc '.$this->_textstring($file_info['desc']));
+            $this->_put('/Desc ' . $this->_textstring($file_info['desc']));
         }
 
         $this->_put('/EF <<');
-        $this->_put('/F '.($this->n + 1).' 0 R');
-        $this->_put('/UF '.($this->n + 1).' 0 R');
+        $this->_put('/F ' . ($this->n + 1) . ' 0 R');
+        $this->_put('/UF ' . ($this->n + 1) . ' 0 R');
         $this->_put('>>');
         $this->_put('>>');
         $this->_put('endobj');
     }
 
-    protected function _put_file_dictionary()
+    protected function _put_file_dictionary(): void
     {
         $this->_newobj();
         $this->n_files = $this->n;
@@ -183,23 +185,23 @@ class PdfArchive extends Fpdi
         $this->_put('endobj');
     }
 
-    protected function _put_metadata()
+    protected function _put_metadata(): void
     {
-        $s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>'."\n";
-        $s .= '<x:xmpmeta xmlns:x="adobe:ns:meta/">'."\n";
+        $s = '<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?>' . "\n";
+        $s .= '<x:xmpmeta xmlns:x="adobe:ns:meta/">' . "\n";
 
         $this->_newobj();
         $this->description_index = $this->n;
 
         foreach ($this->metadata_xmp as $i => $desc) {
-            $s .= $desc."\n";
+            $s .= $desc . "\n";
         }
 
-        $s .= '</x:xmpmeta>'."\n";
+        $s .= '</x:xmpmeta>' . "\n";
         $s .= '<?xpacket end="w"?>';
 
         $this->_put('<<');
-        $this->_put('/Length '.strlen($s));
+        $this->_put('/Length ' . strlen($s));
         $this->_put('/Type /Metadata');
         $this->_put('/Subtype /XML');
         $this->_put('>>');
@@ -207,7 +209,7 @@ class PdfArchive extends Fpdi
         $this->_put('endobj');
     }
 
-    protected function _putcolorprofile()
+    protected function _putcolorprofile(): void
     {
         $this->_newobj();
 
@@ -216,7 +218,7 @@ class PdfArchive extends Fpdi
         $this->_put('/S /GTS_PDFA1');
         $this->_put('/OuputCondition (sRGB)');
         $this->_put('/OutputConditionIdentifier (Custom)');
-        $this->_put('/DestOutputProfile '.($this->n + 1).' 0 R');
+        $this->_put('/DestOutputProfile ' . ($this->n + 1) . ' 0 R');
         $this->_put('/Info (sRGB V4 ICC)');
         $this->_put('>>');
         $this->_put('endobj');
@@ -229,7 +231,7 @@ class PdfArchive extends Fpdi
         $this->_newobj();
 
         $this->_put('<<');
-        $this->_put('/Length '.strlen($icc));
+        $this->_put('/Length ' . strlen($icc));
         $this->_put('/N 3');
         $this->_put('/Filter /FlateDecode');
         $this->_put('>>');
@@ -237,7 +239,7 @@ class PdfArchive extends Fpdi
         $this->_put('endobj');
     }
 
-    protected function _putresources()
+    protected function _putresources(): void
     {
         parent::_putresources();
 
@@ -251,7 +253,7 @@ class PdfArchive extends Fpdi
         }
     }
 
-    protected function _putcatalog()
+    protected function _putcatalog(): void
     {
         parent::_putcatalog();
 
@@ -291,7 +293,7 @@ class PdfArchive extends Fpdi
         }
     }
 
-    protected function _puttrailer()
+    protected function _puttrailer(): void
     {
         parent::_puttrailer();
 
@@ -304,7 +306,7 @@ class PdfArchive extends Fpdi
     /**
      * Redéfini la méthode _putheader
      */
-    protected function _putheader()
+    protected function _putheader(): void
     {
         parent::_putheader();
 

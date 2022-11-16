@@ -3,6 +3,8 @@
 namespace Lle\PdfGeneratorBundle\Generator;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\EntityRepository;
+use Doctrine\Persistence\ObjectRepository;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Lib\Signature;
@@ -19,11 +21,11 @@ class PdfGenerator
 {
     const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
 
-    private $generators = [];
+    private array $generators = [];
 
-    private $criteria;
+    private array $criteria;
 
-    private $options = [];
+    private array $options = [];
 
     public function __construct(
         private EntityManagerInterface $em,
@@ -38,7 +40,7 @@ class PdfGenerator
         }
     }
 
-    public function addOption($key, $val)
+    public function addOption(string $key, mixed $val): void
     {
         $this->options[$key] = $val;
     }
@@ -75,7 +77,7 @@ class PdfGenerator
         return $pdf;
     }
 
-    public function generateByRessource($type, $ressource, iterable $parameters = []): PDFMerger
+    public function generateByRessource(mixed $type, mixed $ressource, iterable $parameters = []): PDFMerger
     {
         $model = $this->newInstance();
         $model->setType(is_array($type) ? implode(',', $type) : $type);
@@ -95,14 +97,16 @@ class PdfGenerator
         return $this->generateByModel($model, $datas);
     }
 
-    public function getCriteria($code)
+    public function getCriteria(string $code): array
     {
         return array_merge(['code' => $code], $this->criteria);
     }
 
-    public function setCriteria(array $criteria)
+    public function setCriteria(array $criteria): self
     {
         $this->criteria = $criteria;
+
+        return $this;
     }
 
     public function signe(PdfMerger $pdfMerger, Signature $signature): TcpdfFpdi
@@ -126,7 +130,7 @@ class PdfGenerator
         return $pdf;
     }
 
-    public function generateByRessourceResponse($type, $ressource, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse
+    public function generateByRessourceResponse(mixed $type, mixed $ressource, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse
     {
         return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signatures);
     }
@@ -170,9 +174,12 @@ class PdfGenerator
         return $this->em->getClassMetadata($this->parameterBag->get('lle.pdf.class'))->newInstance();
     }
 
-    public function getRepository()
+    public function getRepository(): ObjectRepository
     {
-        return $this->em->getRepository($this->parameterBag->get('lle.pdf.class'));
+        /** @var class-string $pdfClass */
+        $pdfClass = $this->parameterBag->get('lle.pdf.class');
+
+        return $this->em->getRepository($pdfClass);
     }
 
     public function getPath(): string

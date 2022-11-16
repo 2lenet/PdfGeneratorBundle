@@ -39,7 +39,7 @@ class BaliseController extends AbstractController
     }
 
     #[Route("/{module}", name: "lle_pdf_generator_admin_model_balise")]
-    public function getBalises($module): Response
+    public function getBalises(array $module): Response
     {
         $classes = [];
 

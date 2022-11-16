@@ -6,51 +6,51 @@ use setasign\Fpdi\TcpdfFpdi;
 
 abstract class Pdf extends TcpdfFpdi
 {
-    protected $debug = false;
+    protected bool $debug = false;
 
-    protected $item;
+    protected array $data;
 
-    protected $data;
+    protected string $rootPath;
 
-    protected $path;
-
-    protected $rootPath;
-
-    public function generate()
+    public function generate(): void
     {
     }
 
-    public function myColors()
+    public function myColors(): ?array
     {
+        return [];
     }
 
-    public function myFonts()
+    public function myFonts(): ?array
     {
+        return [];
     }
 
-    protected function init()
+    protected function init(): void
     {
         return;
     }
 
-    public function initiate()
+    public function initiate(): void
     {
-        return $this->init();
+        $this->init();
     }
 
-    public function setRootPath($path)
+    public function setRootPath(string $path): self
     {
         $this->rootPath = $path;
+
+        return $this;
     }
 
-    protected function log($str)
+    protected function log(string $str): void
     {
         if ($this->debug == true) {
             echo $str . '<br/>';
         }
     }
 
-    protected function colors($c)
+    protected function colors(mixed $c): array
     {
         $colors = $this->myColors();
 
@@ -69,21 +69,23 @@ abstract class Pdf extends TcpdfFpdi
         return $this->hexaToArrayColor(str_replace("#", "", $c));
     }
 
-    public function setData($data)
+    public function setData(array $data): self
     {
         $this->data = $data;
+
+        return $this;
     }
 
-    public function title()
+    public function title(): string
     {
-        return null;
+        return "";
     }
 
-    public function header()
+    public function header(): void
     {
     }
 
-    public function footer()
+    public function footer(): void
     {
         $h = $this->getPageHeight();
         $w = $this->getPageWidth();
@@ -102,23 +104,25 @@ abstract class Pdf extends TcpdfFpdi
         return '';
     }
 
-    function nombreDePageSur($pdf)
+    function nombreDePageSur(string $pdf): false|int
     {
         if (false !== ($file = file_get_contents($pdf))) {
             $pages = preg_match_all("/\/Page\W/", $file, $matches);
 
             return $pages;
         }
+
+        return false;
     }
 
-    public function month($index)
+    public function month(int $index): string
     {
         $mois = array('Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre');
 
         return $mois[$index - 1];
     }
 
-    protected function hexaToArrayColor($color)
+    protected function hexaToArrayColor(string $color): array
     {
         $red = hexdec(substr($color, 0, 2));
         $green = hexdec(substr($color, 2, 2));
@@ -127,7 +131,7 @@ abstract class Pdf extends TcpdfFpdi
         return array('R' => $red, 'G' => $green, 'B' => $blue);
     }
 
-    protected function drawImage($file, $x = 0, $y = 0, $width = null, $height = null, $options = array())
+    protected function drawImage(string $file, float $x = 0, float $y = 0, ?float $width = null, ?float $height = null, array $options = array()): bool
     {
 //        Unknwon $this->get() method
 //        $file = $this->get('kernel')->getProjectDir() . '/' . $file;
@@ -200,12 +204,12 @@ abstract class Pdf extends TcpdfFpdi
         }
     }
 
-    public function drawCircle($x, $y, $r, $c)
+    public function drawCircle(float $x, float $y, float $r, mixed $c): void
     {
         $this->circle($x, $y, $r, 0, 360, 'F', array(), $this->colors($c), 2);
     }
 
-    public function changeFontFamily($police)
+    public function changeFontFamily(string $police): void
     {
         $data = $this->rootPath . '/fonts';
         $file = $data . $police . '.ttf';
@@ -220,7 +224,7 @@ abstract class Pdf extends TcpdfFpdi
 //        }
     }
 
-    protected function w($x, $y, $html, $options = array())
+    protected function w(?float $x, ?float $y, string $html, array $options = array()): void
     {
         $w = (isset($options['w'])) ? $options['w'] : 0;
         $h = (isset($options['h'])) ? $options['h'] : 0;
@@ -230,7 +234,7 @@ abstract class Pdf extends TcpdfFpdi
         $this->writeHTMLCell($w, $h, $x, $y, $html, 0, 0, false, true, $align, true);
     }
 
-    protected function writeInRect($w, $h, $x, $y, $html, $align, $c, $moveX = false)
+    protected function writeInRect(float $w, float $h, ?float $x, ?float $y, string $html, string $align, array $c, bool $moveX = false): void
     {
         $oldW = $w;
 
@@ -246,12 +250,12 @@ abstract class Pdf extends TcpdfFpdi
         $this->w($x, $y, $html, array('w' => $w, 'h' => $h, 'align' => $align));
     }
 
-    protected function changeColor($c)
+    protected function changeColor(mixed $c): void
     {
         $this->SetTextColorArray($this->colors($c));
     }
 
-    protected function changeFont($f)
+    protected function changeFont(mixed $f): void
     {
         $fonts = $this->myFonts();
 
@@ -278,24 +282,24 @@ abstract class Pdf extends TcpdfFpdi
         }
     }
 
-    protected function changeFontStyle($style)
+    protected function changeFontStyle(string $style): void
     {
         $this->FontStyle = $style;
     }
 
-    protected function rectangle($w, $h, $x, $y, $c)
+    protected function rectangle(float $w, float $h, float $x, float $y, mixed $c): void
     {
         $this->Rect($x, $y, $w, $h, 'F', array('width' => 0), $this->colors($c));
     }
 
-    protected function rectangleEmpty($w, $h, $x, $y, $c)
+    protected function rectangleEmpty(float $w, float $h, float $x, float $y, mixed $c): void
     {
         $border_style = array('all' => array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 1, 'phase' => 0));
 
         $this->Rect($x, $y, $w, $h, 'D', $border_style, $this->colors($c));
     }
 
-    protected function traceHLine($y, $options = array())
+    protected function traceHLine(float $y, array $options = array()): void
     {
         $w = $this->getPageWidth();
 
@@ -308,7 +312,7 @@ abstract class Pdf extends TcpdfFpdi
         $this->rectangle($w, $weight, $x, $y, $color);
     }
 
-    protected function traceVline($x, $options = array())
+    protected function traceVline(float $x, array $options = array()): void
     {
         $h = $this->getPageHeight();
 
@@ -318,12 +322,12 @@ abstract class Pdf extends TcpdfFpdi
         $this->rectangle($weight, $h, $x, 0, $color);
     }
 
-    protected function square($size, $x, $y, $c)
+    protected function square(float $size, float $x, float $y, mixed $c): void
     {
         $this->rectangle($size, $size, $x, $y, $c);
     }
 
-    protected function redimenssion($originalWidth, $originalHeight, $targetWidth, $targetHeight)
+    protected function redimenssion(float $originalWidth, float $originalHeight, float $targetWidth, float $targetHeight): array
     {
         while ($originalWidth > $targetWidth || $originalHeight > $targetHeight) {
             $ratio = 1 / ($originalWidth / $targetWidth);
@@ -339,7 +343,7 @@ abstract class Pdf extends TcpdfFpdi
         return array($originalWidth, $originalHeight);
     }
 
-    protected function showGrid($size = 5)
+    protected function showGrid(int $size = 5): void
     {
         for ($i = 0; $i < 100; $i++) {
             $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
