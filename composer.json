@@ -24,9 +24,10 @@
         "dompdf/dompdf": "^1.1",
         "tecnickcom/tcpdf": "*",
         "setasign/fpdi-fpdf": "^2.3.0",
-        "setasign/tfpdf": "1.84", //version locked won't work from 1.85 :(
+        "setasign/tfpdf": "^1.32",
         "vich/uploader-bundle": "^1.8",
-        "symfony/yaml": "^4.0|^5.0|^6.0"
+        "symfony/yaml": "^4.0|^5.0|^6.0",
+        "setasign/fpdf": "1.8.4"
     },
     "autoload": {
         "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
