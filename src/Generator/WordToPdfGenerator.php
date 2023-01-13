@@ -167,7 +167,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return $value;
     }
 
-    private function setVar(TemplateProcessor $templateProcessor, string $variable, array|object $root, string|PropertyPathInterface $var, array $match): void
+    private function setVar(TemplateProcessor $templateProcessor, string $variable, array|object $root, string|PropertyPathInterface $var, ?array $match): void
     {
         if (mb_substr($variable, 0, 4, "UTF-8") === '@img') {
             $img = $this->getImg($root, $var, $match);
@@ -184,7 +184,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         }
     }
 
-    private function isImgPath(string $path, array &$matches): false|int
+    private function isImgPath(string $path, ?array &$matches): false|int
     {
         return preg_match('#^@img\[([A-Za-z0-9\.\[\]]+)\](:(\d+)x(\d+))?$#', $path, $matches);
     }
