@@ -11,7 +11,6 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Finder\Finder;
-use Dompdf\Dompdf;
 use Lle\PdfGeneratorBundle\ObjAccess\Accessor;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;

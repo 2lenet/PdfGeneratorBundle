@@ -5,6 +5,7 @@ namespace Lle\PdfGeneratorBundle\Controller;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
 use FontLib\Table\Type\name;
+use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,15 +16,73 @@ use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter
 use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Yaml\Yaml;
 
-#[Route("/admin/pdfgen_balise")]
-class BaliseController extends AbstractController
+#[Route("/admin/pdfgen")]
+class PdfGenController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em)
+    public function __construct(private EntityManagerInterface $em, private PdfGenerator $pdfGenerator)
     {
     }
+    #[Route("/downloadModele", name: "lle_pdf_generator_download_model")]
+    public function downloadModele(Request $request): Response
+    {
+        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
 
-    #[Route("/balise", name: "lle_pdf_generator_admin_balise")]
-    public function index(): Response
+        if ($model) {
+            $response = new BinaryFileResponse($this->pdfGenerator->getPath() . $model->getPath());
+
+            return $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $model->getPath());
+        } else {
+            throw new NotFoundHttpException();
+        }
+    }
+
+    #[Route("/showModele", name: "lle_pdf_generator_show_model")]
+    public function showModele(Request $request): Response
+    {
+        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
+
+        if ($model) {
+            return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
+        } else {
+            throw new NotFoundHttpException();
+        }
+    }
+
+    #[Route("/checkModele", name: "lle_pdf_generator_check_model")]
+    public function checkModele(Request $request): Response
+    {
+        /** @var Session $session */
+        $session = $request->getSession();
+        $flashBag = $session->getFlashBag();
+
+        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
+
+        if ($model) {
+            $model->setCheckFile(true);
+
+            try {
+                $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
+            } catch (\Exception $e) {
+                $model->setCheckFile(false);
+            }
+
+            $this->em->persist($model);
+            $this->em->flush();
+
+            if ($model->getCheckFile()) {
+                $flashBag->add('success', 'Fichier valider');
+            } else {
+                $flashBag->add('error', 'Une erreur est survenue, il est impossible de générer un PDF avec les données actuel de ce modèle');
+            }
+
+            return new RedirectResponse($request->server->get('HTTP_REFERER'));
+        } else {
+            throw new NotFoundHttpException();
+        }
+    }
+
+    #[Route("/balises", name: "lle_pdf_generator_admin_balise")]
+    public function balise(): Response
     {
         $configDatas = Yaml::parseFile(__DIR__ . '/../../../../../config/packages/pdf_generator.yaml');
 
@@ -38,7 +97,7 @@ class BaliseController extends AbstractController
         ]);
     }
 
-    #[Route("/{module}", name: "lle_pdf_generator_admin_model_balise")]
+    #[Route("/balises/{module}", name: "lle_pdf_generator_admin_model_balise")]
     public function getBalises(array $module): Response
     {
         $classes = [];

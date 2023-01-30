@@ -9,7 +9,6 @@
         "laminas/laminas-escaper": "^2.11",
         "symfony/property-access": "^6.0",
         "phpoffice/phpword": "^0.18",
-        "dompdf/dompdf": "^2.0.1",
         "tecnickcom/tcpdf": "^6.3",
         "vich/uploader-bundle": "^1.19 || ^2.0",
         "symfony/yaml": "^6.0",
