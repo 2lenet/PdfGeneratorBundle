@@ -5,16 +5,11 @@
 `composer require 2lenet/pdf-generator-bundle`
 
 
-Require: unoconv (for word_to_pdf)
+Require: unoserver (for word_to_pdf)
 ```dockerfile
-RUN apt-get update;apt-get install -y unoconv
+RUN apt-get update;apt-get install -y unoserver
 ```
-unoconv may have some problems with the www-data user: https://github.com/unoconv/unoconv/issues/241
-```dockerfile
-RUN mkdir -p /var/www/.cache && chown www-data /var/www/.cache && chgrp www-data /var/www/.cache
-RUN mkdir -p /var/www/.config && chown www-data /var/www/.config && chgrp www-data /var/www/.config
-```
-I think that this can be perfectible.
+
 
 ## Configuration
 config (with default value):
