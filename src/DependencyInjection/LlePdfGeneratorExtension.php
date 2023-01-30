@@ -28,7 +28,6 @@ class LlePdfGeneratorExtension extends Extension
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');
-        $loader->load('actions.yaml');
 
         $container->setParameter('lle.pdf.default_generator', $config['default_generator']);
         $container->setParameter('lle.pdf.path', $config['path']);
