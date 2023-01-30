@@ -59,7 +59,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             }
         }
     }
-
+    
     private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
     {
         $templateProcessor = new TemplateProcessor($source);
@@ -69,7 +69,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $templateProcessor->saveAs($tmpFile);
 
         if ($options['twig'] ?? false) {
-            $process = new Process(['unoconv', '-o', $tmpFile . '.html', '-f', 'html', $tmpFile]);
+            $process = new Process(['unoconvert ', '--convert-to', 'html', $tmpFile, $tmpFile . '.html']);
             $process->run();
 
             $template = $this->twig->createTemplate(\file_get_contents($tmpFile . '.html'));
@@ -78,7 +78,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             $tmpFile = $tmpFile . '.html.twig';
         }
 
-        $process = new Process(['unoconv', '-o', $savePath, '-f', 'pdf', $tmpFile]);
+        $process = new Process(['unoconvert', $tmpFile, $savePath]);
         $process->run();
 
         if (!$process->isSuccessful()) {
