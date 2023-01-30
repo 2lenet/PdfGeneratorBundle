@@ -7,38 +7,40 @@ use \PDFMerger as Base;
 
 class PdfIterable implements \Iterator, \Countable
 {
+    private int $position;
 
-    private $data;
-    private $position;
-
-    public function __construct(iterable $data){
-        $this->data = $data;
+    public function __construct(private iterable $data)
+    {
         $this->position = 0;
     }
 
-    public function rewind() {
+    public function rewind(): void
+    {
         $this->position = 0;
     }
 
-    public function current() {
+    public function current(): mixed
+    {
         return $this->data[$this->position];
     }
 
-    public function key() {
+    public function key(): mixed
+    {
         return $this->position;
     }
 
-    public function next() {
+    public function next(): void
+    {
         ++$this->position;
     }
 
-    public function valid() {
+    public function valid(): bool
+    {
         return isset($this->data[$this->position]);
     }
 
-    public function count()
+    public function count(): int
     {
         return count($this->data);
     }
-
 }

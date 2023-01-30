@@ -3,6 +3,7 @@
 namespace Lle\PdfGeneratorBundle\DependencyInjection;
 
 use Lle\PdfGeneratorBundle\Entity\PdfModel;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -19,15 +20,16 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder('lle_pdf_generator');
+
+        /** @var ArrayNodeDefinition $rootNode */
         $rootNode = $treeBuilder->getRootNode();
 
-        $rootNode
-            ->children()
-            ->scalarNode('default_generator')->defaultValue('word_to_pdf')->end()
-            ->scalarNode('path')->defaultValue('data/pdfmodel')->end()
-            ->scalarNode('class')->defaultValue(PdfModel::class)->end()
-            ->arrayNode('data_models')
-                ->scalarPrototype()->end();
+        $nodeBuilder = $rootNode->children();
+
+        $nodeBuilder->scalarNode('default_generator')->defaultValue('word_to_pdf')->end();
+        $nodeBuilder->scalarNode('path')->defaultValue('data/pdfmodel')->end();
+        $nodeBuilder->scalarNode('class')->defaultValue(PdfModel::class)->end();
+        $nodeBuilder->arrayNode('data_models')->scalarPrototype()->end();
 
         // Here you should define the parameters that are allowed to
         // configure your bundle. See the documentation linked above for
