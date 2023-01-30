@@ -23,7 +23,7 @@
         "twig/twig": "^3.4.3",
         "setasign/fpdi": "^2.3.6",
         "symfony/process": "^6.0",
-        "setasign/fpdf": "^1.8",
+        "setasign/fpdf": "1.8.4",
         "alexanderpavlov/pdfmerger": "^1.0",
         "symfony/dotenv": "^6.0"
     },
