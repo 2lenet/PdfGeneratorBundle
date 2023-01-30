@@ -12,5 +12,5 @@ services:
         tags: [controller.service_arguments]
 
     Lle\PdfGeneratorBundle\Action\CheckPdfAction:
-        arguments: ['@Lle\PdfGeneratorBundle\Generator\PdfGenerator', '@doctrine.orm.default_entity_manager', '@session.flash_bag']
+        arguments: ['@Lle\PdfGeneratorBundle\Generator\PdfGenerator', '@doctrine.orm.default_entity_manager']
         tags: [controller.service_arguments]

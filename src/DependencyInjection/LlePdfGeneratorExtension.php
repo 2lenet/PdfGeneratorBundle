@@ -18,19 +18,21 @@ class LlePdfGeneratorExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
+
         $config = $this->processConfiguration($configuration, $configs);
 
         $container->registerForAutoconfiguration(PdfGeneratorInterface::class)->addTag('lle.pdf.generator');
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+
+        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
         $loader->load('services.yaml');
         $loader->load('actions.yaml');
 
-        $container->setParameter( 'lle.pdf.default_generator', $config[ 'default_generator' ] );
-        $container->setParameter( 'lle.pdf.path', $config[ 'path' ] );
-        $container->setParameter( 'lle.pdf.class', $config[ 'class' ] );
-        $container->setParameter( 'lle.pdf.data_model', $config[ 'data_models' ] );
+        $container->setParameter('lle.pdf.default_generator', $config['default_generator']);
+        $container->setParameter('lle.pdf.path', $config['path']);
+        $container->setParameter('lle.pdf.class', $config['class']);
+        $container->setParameter('lle.pdf.data_model', $config['data_models']);
     }
 }

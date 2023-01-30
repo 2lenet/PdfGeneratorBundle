@@ -4,25 +4,27 @@ namespace Lle\PdfGeneratorBundle\Generator;
 
 use PhpOffice\PhpWord\TemplateProcessor;
 
-abstract class AbstractPdfGenerator implements PdfGeneratorInterface {
+abstract class AbstractPdfGenerator implements PdfGeneratorInterface
+{
+    protected string $pdfPath;
 
-    protected $pdfPath;
-
-    public static function getName(): string{
+    public static function getName(): string
+    {
         return static::class;
     }
 
-    public function setPdfPath(string $pdfPath): void{
+    public function setPdfPath(string $pdfPath): void
+    {
         $this->pdfPath = $pdfPath;
     }
-    
-    public function getRessource(string $modelRessource): string{
-        return $this->pdfPath.$modelRessource;
+
+    public function getRessource(string $modelRessource): string
+    {
+        return $this->pdfPath . $modelRessource;
     }
 
-    public function getVariables(string $source):array
+    public function getVariables(string $source): array
     {
         return [];
     }
-
 }
