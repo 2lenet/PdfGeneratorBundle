@@ -134,7 +134,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return [$exp, $root, $var, null];
     }
 
-    private function getImg(object|array $root, string|PropertyPathInterface $var, array $match): array
+    private function getImg(object|array $root, string|PropertyPathInterface $var, ?array $match): array
     {
         $value = (string)$this->propertyAccess->getValue($root, $var);
 
