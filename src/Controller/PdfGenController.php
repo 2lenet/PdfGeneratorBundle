@@ -4,16 +4,17 @@ namespace Lle\PdfGeneratorBundle\Controller;
 
 use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
-use FontLib\Table\Type\name;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
-use Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 use Symfony\Component\Yaml\Yaml;
 
 #[Route("/admin/pdfgen")]
@@ -22,6 +23,7 @@ class PdfGenController extends AbstractController
     public function __construct(private EntityManagerInterface $em, private PdfGenerator $pdfGenerator)
     {
     }
+
     #[Route("/downloadModele", name: "lle_pdf_generator_download_model")]
     public function downloadModele(Request $request): Response
     {
@@ -49,7 +51,7 @@ class PdfGenController extends AbstractController
     }
 
     #[Route("/checkModele", name: "lle_pdf_generator_check_model")]
-    public function checkModele(Request $request): Response
+    public function checkModele(Request $request): RedirectResponse
     {
         /** @var Session $session */
         $session = $request->getSession();
@@ -142,9 +144,6 @@ class PdfGenController extends AbstractController
                 $balises[] = [$v => $caption];
             }
         }
-
-        $classMetadataFactory = new ClassMetadataFactory(new AnnotationLoader(new AnnotationReader()));
-        $normalizer = new ObjectNormalizer($classMetadataFactory);
 
         return $this->render('@LlePdfGenerator/balise/balises.html.twig', [
             'balisesArray' => $balises,
