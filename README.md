@@ -24,7 +24,7 @@ add routing (for show the ressource use ```<a href="{{ path('lle_pdf_generator_s
 
 ```yaml
 lle_pdf_generator:
-    resource: "@LlePdfGeneratorBundle/Resources/routing/routes.yaml"
+    resource: "@LlePdfGeneratorBundle/Resources/config/routes.yaml"
     prefix: /
 ```
 if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on data/pdfmodel/mydoc.doc with word_to_pdf generator.
@@ -522,3 +522,10 @@ INSERT INTO `lle_pdf_model` (`code`, `path`, `type`) VALUES
 The default type is always the first (here "word_to_pdf")
 
 if none type is defined the type is lle_pdf_generator.default_generator config
+
+## Migrate to pdf generator v3
+There is few breaks in backward compatibility in v3. Here is the steps to migrate :
+- `@LlePdfGeneratorBundle/Resources/routing/routes.yaml` is now in `@LlePdfGeneratorBundle/Resources/config/routes.yaml`
+- The class `Lle\PdfGeneratorBundle\Entity\PdfModelCustomFileTrait` is replaced by `Lle\PdfGeneratorBundle\Entity\PdfModelTrait` and now the trait include the `$file` property
+- The route `lle_pdf_generator_show_ressource` change to `lle_pdf_generator_show_model`
+- The route `lle_pdf_generator_show_pdf` change to `lle_pdf_generator_download_model`
