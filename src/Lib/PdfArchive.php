@@ -8,21 +8,13 @@ use setasign\Fpdi\PdfParser\StreamReader;
 class PdfArchive extends Fpdi
 {
     const ICC_PROFILE_PATH = __DIR__ . "/icc/profile.icc";
-
-    protected array $attachments = array();
-
-    protected array $metadata_xmp = array();
-
+    protected array $attachments = [];
+    protected array $metadata_xmp = [];
     protected int $description_index = 0;
-
     protected int $output_intent_index = 0;
-
     protected int $n_files;
-
     protected \DateTime $createdAt;
-
     protected string $part;
-
     protected string $conformance;
 
     public function __construct(
@@ -31,9 +23,8 @@ class PdfArchive extends Fpdi
         string $size = 'A4',
         string $version = "1.7",
         string $part = "3",
-        string $conformance = "B"
-    )
-    {
+        string $conformance = "B",
+    ) {
         parent::__construct($orientation, $unit, $size);
         $this->createdAt = new \DateTime();
         $this->PDFVersion = sprintf('%.1F', $version);
@@ -46,15 +37,14 @@ class PdfArchive extends Fpdi
         string $name = "",
         string $desc = "",
         string $relationship = "Alternative",
-        string $mimetype = "text#2Fxml"
-    ): void
-    {
+        string $mimetype = "text#2Fxml",
+    ): void {
         $this->attachments[] = [
             'file' => $file,
             'name' => $name,
             'desc' => $desc,
             'relationship' => $relationship,
-            'subtype' => $mimetype
+            'subtype' => $mimetype,
         ];
     }
 
@@ -139,8 +129,8 @@ class PdfArchive extends Fpdi
     {
         $this->_newobj();
 
-//        Never defined
-//        $this->file_spe_dictionnary_index = $this->n;
+        //        Never defined
+        //        $this->file_spe_dictionnary_index = $this->n;
 
         $this->_put('<<');
         $this->_put('/F (' . $this->_escape($file_info['name']) . ')');

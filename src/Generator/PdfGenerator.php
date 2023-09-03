@@ -7,33 +7,29 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\Persistence\ObjectRepository;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
+use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 use Lle\PdfGeneratorBundle\Lib\Signature;
 use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Finder\Finder;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 
 class PdfGenerator
 {
     const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
-
     private array $generators = [];
-
     private array $criteria;
-
     private array $options = [];
 
     public function __construct(
         private EntityManagerInterface $em,
         private KernelInterface $kernel,
         private ParameterBagInterface $parameterBag,
-        iterable $pdfGenerators
-    )
-    {
+        iterable $pdfGenerators,
+    ) {
         $this->criteria = [];
         foreach ($pdfGenerators as $pdfGenerator) {
             $this->generators[$pdfGenerator->getName()] = $pdfGenerator;
@@ -130,18 +126,28 @@ class PdfGenerator
         return $pdf;
     }
 
-    public function generateByRessourceResponse(mixed $type, mixed $ressource, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse
-    {
+    public function generateByRessourceResponse(
+        mixed $type,
+        mixed $ressource,
+        iterable $parameters = [],
+        ?array $signatures = [],
+    ): BinaryFileResponse {
         return $this->getPdfToResponse($this->generateByRessource($type, $ressource, $parameters), $signatures);
     }
 
-    public function generateByModelResponse(PdfModelInterface $model, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse
-    {
+    public function generateByModelResponse(
+        PdfModelInterface $model,
+        iterable $parameters = [],
+        ?array $signatures = [],
+    ): BinaryFileResponse {
         return $this->getPdfToResponse($this->generateByModel($model, $parameters), $signatures);
     }
 
-    public function generateResponse(string $code, iterable $parameters = [], ?array $signatures = []): BinaryFileResponse
-    {
+    public function generateResponse(
+        string $code,
+        iterable $parameters = [],
+        ?array $signatures = [],
+    ): BinaryFileResponse {
         return $this->getPdfToResponse($this->generate($code, $parameters), $signatures);
     }
 

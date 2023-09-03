@@ -6,10 +6,9 @@ use setasign\Fpdi\TcpdfFpdi;
 
 class Signature
 {
-    /** @var int[]|null  */
+    /** @var int[]|null */
     private $bgColor = null;
-
-    /** @var int[]|null  */
+    /** @var int[]|null */
     private $sgColor = null;
 
     public function __construct(
@@ -17,9 +16,8 @@ class Signature
         private ?string $password = null,
         private array $data = [],
         private ?string $image = null,
-        private ?array $position = null
-    )
-    {
+        private ?array $position = null,
+    ) {
     }
 
     public function getData(): array
@@ -165,7 +163,7 @@ class Signature
                 $pdf->setPage($this->position['p']);
             }
 
-            $pdf->SetAutoPageBreak(FALSE, PDF_MARGIN_BOTTOM);
+            $pdf->SetAutoPageBreak(false, PDF_MARGIN_BOTTOM);
             $pdf->Image($this->image, $x, $y, $w, $h, 'PNG');
             $pdf->SetFontSize($s);
             $pdf->SetFillColor(255, 255, 255);
@@ -187,7 +185,15 @@ class Signature
         }
 
         if ($this->certificate && $this->password) {
-            $pdf->setSignature('file://' . $this->certificate, 'file://' . $this->certificate, $this->password, '', 2, $this->data, 'A');
+            $pdf->setSignature(
+                'file://' . $this->certificate,
+                'file://' . $this->certificate,
+                $this->password,
+                '',
+                2,
+                $this->data,
+                'A'
+            );
 
             if ($this->image) {
                 $pdf->setSignatureAppearance($x ?? 0, $y ?? 0, $w ?? 0, $h ?? 0);

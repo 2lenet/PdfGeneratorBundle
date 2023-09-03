@@ -2,8 +2,8 @@
 
 namespace Lle\PdfGeneratorBundle\Lib;
 
+use PDFMerger as Base;
 use setasign\Fpdi\TcpdfFpdi;
-use \PDFMerger as Base;
 
 class PdfIterable implements \Iterator, \Countable
 {

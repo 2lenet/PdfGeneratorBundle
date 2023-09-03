@@ -4,15 +4,16 @@
 
 `composer require 2lenet/pdf-generator-bundle`
 
-
 Require: unoserver (for word_to_pdf)
+
 ```dockerfile
 RUN apt-get update;apt-get install -y unoserver
 ```
 
-
 ## Configuration
+
 config (with default value):
+
 ```yaml
 lle_pdf_generator:
   path: "data/pdfmodel"
@@ -20,20 +21,24 @@ lle_pdf_generator:
   class: 'Lle\PdfGeneratorBundle\Entity\PdfModel'
 ```
 
-add routing (for show the ressource use ```<a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">```)
+add routing (for show the ressource
+use ```<a href="{{ path('lle_pdf_generator_show_ressource', {'id': item.id}) }}">```)
 
 ```yaml
 lle_pdf_generator:
     resource: "@LlePdfGeneratorBundle/Resources/config/routes.yaml"
     prefix: /
 ```
-if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on data/pdfmodel/mydoc.doc with word_to_pdf generator.
+
+if you create an model without type and with ressource is mydoc.doc the generator will create an pdf based on
+data/pdfmodel/mydoc.doc with word_to_pdf generator.
 
 ## Configure your tags
 
 You can easily list the tags used in your models.
 
-To do this, simply declare the route to the page where the tags will be listed. The name of the route is "lle_pdf_generator_admin_balise".
+To do this, simply declare the route to the page where the tags will be listed. The name of the route is "
+lle_pdf_generator_admin_balise".
 
 Example in Crudit:
 
@@ -54,7 +59,8 @@ public function getListActions(): array
 
 ```
 
-If you use several document templates linked to different modules, you can declare your annotations in the pdf_generator.yaml 
+If you use several document templates linked to different modules, you can declare your annotations in the
+pdf_generator.yaml
 of your project:
 
 ```yaml
@@ -66,7 +72,7 @@ lle_pdf_generator:
     - commande
 ```
 
-To complete the list of tags, use Symfony annotations declared in your pdf_generator.yaml file. For example: 
+To complete the list of tags, use Symfony annotations declared in your pdf_generator.yaml file. For example:
 
 ```php
 <?php
@@ -84,7 +90,8 @@ class Commande
 }
 ```
 
-If you only have on template or one module using several templates, you do not have to declare "data_models" in the pdf_generator.yaml
+If you only have on template or one module using several templates, you do not have to declare "data_models" in the
+pdf_generator.yaml
 file. By default, the Symfony annotation will be "**pdfgenerator**". In your entity, you will then have:
 
 ```php
@@ -104,7 +111,9 @@ class Commande
 ```
 
 ## Use it
+
 You can use the PDFgenerator with bdd or directly in code
+
 ```php
 <?php
 /**
@@ -131,6 +140,7 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 ```
 
 You can create an instance of TcpdfFpdi (Tcpdf and Fpdi) with the PdfMerger
+
 ```php
 <?php
 $pdfMerger = $generator->generate('MYMODELCODE', $data)->merge('pdf.pdf','F');
@@ -144,6 +154,7 @@ return new ResponseBinaryFile('file.pdf');
 ## Use with your entity:
 
 change config "class" of pdf generator "App/Entity/MyModelPdf"
+
 ```php
 
 <?php
@@ -165,13 +176,15 @@ class MyModelPdf implements PDF\PdfModelInterface
     use PDF\PdfModelTrait;
 }
 ```
+
 ## Use with bdd
 
 The model is a PdfModel with
 
 a code, a ressource, a libelle, a type and a description
 
-you can create a model with 
+you can create a model with
+
 ```
 php bin/console lle:pdf-generator:create-model
 ```
@@ -186,8 +199,6 @@ you can create several type of pdf (already exist tcpdf and word_to_pdf)
 - tcpdf (the ressource is an class which extend Lle\PdfGeneratorBundle\Lib\Pdf (Tcpdf and Fpdi))
 
 You can create your own type with an class which extend Lle\PdfGeneratorBundle\Generator\AbstractPdfGenerator
-
-
 
 AbstractPdfGenerator implements Lle\PdfGeneratorBundle\Generator\PdfGeneratorInterface (autotagged lle.pdf.generator)
 
@@ -236,6 +247,7 @@ class TcpdfGenerator extends AbstractPdfGenerator
 ## Use the type tcpdf
 
 An exemple for tcpdf:
+
 ```php
 <?php
 
@@ -293,6 +305,7 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 ```
 
 You can create an pdf model in bdd with ressource "App\Service\Pdf\MyTcpdfClass" and code MYTCPDF type "tcpdf"
+
 ```php
 <?php
 /**
@@ -310,7 +323,7 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 
 ## use the word_to_pdf (format Microsoft Word XML)
 
-Create a .docx file /data/pdfmodel/test.docx  with Hello ${name}  
+Create a .docx file /data/pdfmodel/test.docx with Hello ${name}
 
 ```php
 <?php
@@ -328,7 +341,9 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 
 
 ```
+
 You can create an pdf model in bdd with ressource "test.docx" and code MYDOC type "word_to_pdf"
+
 ```php
 <?php
 /**
@@ -344,14 +359,19 @@ public function pdf(PdfGenerator $generator, UserRepository $userRepository)
 }
 ```
 
-you can use variables ${@img[logo]:100x200} or ${@img[logo]} for create images. (regex is #^@img\[(\w+)\](:(\d+)x(\d+))?$#)
+you can use variables ${@img[logo]:100x200} or ${@img[logo]} for create images. (regex is #^@img\[(\w+)\](:(\d+)x(
+\d+))?$#)
+
 ```php
 $generator->generateResponse('MYDOC', [['logo'=> 'logo.png']]);
 ```
+
 search to {{lle_pdf_generator.path}}/logo.png so default is data/pdfmodel/logo.png
+
 ```php
 $generator->generateResponse('MYDOC', [['logo'=> '/logo.png']]);
 ```
+
 search to /logo.png
 
 https://phpword.readthedocs.io/en/latest/templates-processing.html
@@ -380,6 +400,7 @@ $signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $i
 ```
 
 You can add an draw with signature
+
 ```php
 <?php
 /*...*/
@@ -395,7 +416,9 @@ $pos = [
 ];
 $signature = new Signature($generator->getPath().'cert/tcpdf.crt', $password, $info, $pictur, $pos);
 ```
+
 You can also add segment or points for create the signature picture
+
 ```php
 <?php
 $signature = new Signature($certif, $password, $info);
@@ -408,7 +431,9 @@ $signature->setImage('signe.png', $pos);
 
 $signature->setPosition($pos); // you can use it also
 ```
+
 ### Pdf response
+
 ```php
 <?php
 return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'test.docx', $data, [$signature]);
@@ -419,6 +444,7 @@ return $generator->generateResponse('MYMODELCODE', $data, [$signature]);
 ### Pdf Merger
 
 The pdfMerge is the class of instance return by generator
+
 ```php
 <?php
 $pdfMerger = $generator->generateByRessource(WordToPdfGenerator::getName(), 'test.docx', $data);
@@ -428,11 +454,13 @@ $pdf = $generator->signes($pdfMerger, [$signature]); //return an TcpdfFpdi (sign
 $pdf->Output('My pdf', 'D'); // return a signed pdf
 $pdfMerger->merge('My pdf', 'D'); // return a unsigned pdf
 ```
+
 You can't signed a pdfMerger you have to pass by TcpdfFpdi. An PdfMerger instance can never be signed
 
 You can continue to sign an TcpdfFpdi with $generator->signeTcpdfFpdi($pdf, $signature)
 
 You can also use directly the signature instance for sign a Pdfmerger or TcpdfFpdi
+
 ```php
 <?php
 $pdfMerger = $generator->generate('MYMODELCODE', $data);
@@ -452,12 +480,12 @@ $pdf->Output('My pdf', 'D');
 
 You can't use several sign with PdfMerger
 
-
-
 ## ieterable data
+
 create a .docx file and create 2 table (1 line , 3 cells)
 
-- first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}, cells 3 write ${@img[eleves.logo]}
+- first table cells 1 write ${eleves.nom} , cells 2 write ${eleves.etablissement.nom}, cells 3 write
+  ${@img[eleves.logo]}
 - second table cells 1 write ${users.[nom]}, cells 2 write ${users.[adresse][rue]}, cells 3 write ${@img[users.[logo]]}
 
 save it with myiterable.docx
@@ -475,6 +503,7 @@ return $generator->generateByRessourceResponse(WordToPdfGenerator::getName(), 'm
 show it
 
 Warning only the first level of data can to be an PdfIterable, you can't use ${etablissement.eleves}:
+
 ```php
 <?php
 $data = [
@@ -486,13 +515,13 @@ $data = [
 # Understand the property (word to pdf)
 
 The property is read with propertyAccesor (Symfony) but the first is beetween two "[]": [first].rest
+
 ```
 the vars ${eleve.etablissement.nom} -> $propertyAccess->getValue($params, '[eleve].etablissement.nom')
 the vars ${eleve.etablissement[nom]} -> $propertyAccess->getValue($params, '[eleve].etablissement[nom]')
 ```
+
 !!! warning use the same systeme if you create your own type !!!
-
-
 
 ## Merge several model
 

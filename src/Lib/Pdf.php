@@ -7,9 +7,7 @@ use setasign\Fpdi\TcpdfFpdi;
 abstract class Pdf extends TcpdfFpdi
 {
     protected bool $debug = false;
-
     protected array $data;
-
     protected string $rootPath;
 
     public function generate(): void
@@ -117,7 +115,20 @@ abstract class Pdf extends TcpdfFpdi
 
     public function month(int $index): string
     {
-        $mois = array('Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre');
+        $mois = [
+            'Janvier',
+            'Fevrier',
+            'Mars',
+            'Avril',
+            'Mai',
+            'Juin',
+            'Juillet',
+            'Août',
+            'Septembre',
+            'Octobre',
+            'Novembre',
+            'Décembre',
+        ];
 
         return $mois[$index - 1];
     }
@@ -128,13 +139,19 @@ abstract class Pdf extends TcpdfFpdi
         $green = hexdec(substr($color, 2, 2));
         $blue = hexdec(substr($color, 4, 2));
 
-        return array('R' => $red, 'G' => $green, 'B' => $blue);
+        return ['R' => $red, 'G' => $green, 'B' => $blue];
     }
 
-    protected function drawImage(string $file, float $x = 0, float $y = 0, ?float $width = null, ?float $height = null, array $options = array()): bool
-    {
-//        Unknwon $this->get() method
-//        $file = $this->get('kernel')->getProjectDir() . '/' . $file;
+    protected function drawImage(
+        string $file,
+        float $x = 0,
+        float $y = 0,
+        ?float $width = null,
+        ?float $height = null,
+        array $options = [],
+    ): bool {
+        //        Unknwon $this->get() method
+        //        $file = $this->get('kernel')->getProjectDir() . '/' . $file;
 
         $round = (isset($options['round'])) ? $options['round'] : false;
         $crop = (isset($options['crop'])) ? $options['crop'] : false;
@@ -193,7 +210,27 @@ abstract class Pdf extends TcpdfFpdi
                     $file = $target;
                 }
 
-                $this->Image($file, $x, $y, $w, $h, '', '', $align, $resize, $dpi, $palign, false, false, 0, false, false, false, false, array());
+                $this->Image(
+                    $file,
+                    $x,
+                    $y,
+                    $w,
+                    $h,
+                    '',
+                    '',
+                    $align,
+                    $resize,
+                    $dpi,
+                    $palign,
+                    false,
+                    false,
+                    0,
+                    false,
+                    false,
+                    false,
+                    false,
+                    []
+                );
             }
 
             return true;
@@ -206,7 +243,7 @@ abstract class Pdf extends TcpdfFpdi
 
     public function drawCircle(float $x, float $y, float $r, mixed $c): void
     {
-        $this->circle($x, $y, $r, 0, 360, 'F', array(), $this->colors($c), 2);
+        $this->circle($x, $y, $r, 0, 360, 'F', [], $this->colors($c), 2);
     }
 
     public function changeFontFamily(string $police): void
@@ -214,17 +251,17 @@ abstract class Pdf extends TcpdfFpdi
         $data = $this->rootPath . '/fonts';
         $file = $data . $police . '.ttf';
 
-//        Unknown $this->addTTFfont() method
-//        if (file_exists($file)) {
-//            $fontname = $this->addTTFfont($file, 'TrueTypeUnicode', '', 32, $data);
-//
-//            $this->SetFont($fontname, '', null, $data . $fontname . '.php');
-//        } else {
+        //        Unknown $this->addTTFfont() method
+        //        if (file_exists($file)) {
+        //            $fontname = $this->addTTFfont($file, 'TrueTypeUnicode', '', 32, $data);
+        //
+        //            $this->SetFont($fontname, '', null, $data . $fontname . '.php');
+        //        } else {
         $this->SetFont($police);
-//        }
+        //        }
     }
 
-    protected function w(?float $x, ?float $y, string $html, array $options = array()): void
+    protected function w(?float $x, ?float $y, string $html, array $options = []): void
     {
         $w = (isset($options['w'])) ? $options['w'] : 0;
         $h = (isset($options['h'])) ? $options['h'] : 0;
@@ -234,8 +271,16 @@ abstract class Pdf extends TcpdfFpdi
         $this->writeHTMLCell($w, $h, $x, $y, $html, 0, 0, false, true, $align, true);
     }
 
-    protected function writeInRect(float $w, float $h, ?float $x, ?float $y, string $html, string $align, array $c, bool $moveX = false): void
-    {
+    protected function writeInRect(
+        float $w,
+        float $h,
+        ?float $x,
+        ?float $y,
+        string $html,
+        string $align,
+        array $c,
+        bool $moveX = false,
+    ): void {
         $oldW = $w;
 
         $widthText = $this->getStringWidth($html);
@@ -247,7 +292,7 @@ abstract class Pdf extends TcpdfFpdi
 
         $this->rectangle($w, $h, $x, $y, $c);
 
-        $this->w($x, $y, $html, array('w' => $w, 'h' => $h, 'align' => $align));
+        $this->w($x, $y, $html, ['w' => $w, 'h' => $h, 'align' => $align]);
     }
 
     protected function changeColor(mixed $c): void
@@ -262,7 +307,7 @@ abstract class Pdf extends TcpdfFpdi
         if (isset($fonts[$f])) {
             $f = $fonts[$f];
         } else {
-            $f = array('size' => 9, 'color' => 'default', 'family' => 'helvetica');
+            $f = ['size' => 9, 'color' => 'default', 'family' => 'helvetica'];
         }
 
         if (isset($f['size'])) {
@@ -289,17 +334,17 @@ abstract class Pdf extends TcpdfFpdi
 
     protected function rectangle(float $w, float $h, float $x, float $y, mixed $c): void
     {
-        $this->Rect($x, $y, $w, $h, 'F', array('width' => 0), $this->colors($c));
+        $this->Rect($x, $y, $w, $h, 'F', ['width' => 0], $this->colors($c));
     }
 
     protected function rectangleEmpty(float $w, float $h, float $x, float $y, mixed $c): void
     {
-        $border_style = array('all' => array('width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 1, 'phase' => 0));
+        $border_style = ['all' => ['width' => 0.5, 'cap' => 'butt', 'join' => 'miter', 'dash' => 1, 'phase' => 0]];
 
         $this->Rect($x, $y, $w, $h, 'D', $border_style, $this->colors($c));
     }
 
-    protected function traceHLine(float $y, array $options = array()): void
+    protected function traceHLine(float $y, array $options = []): void
     {
         $w = $this->getPageWidth();
 
@@ -312,7 +357,7 @@ abstract class Pdf extends TcpdfFpdi
         $this->rectangle($w, $weight, $x, $y, $color);
     }
 
-    protected function traceVline(float $x, array $options = array()): void
+    protected function traceVline(float $x, array $options = []): void
     {
         $h = $this->getPageHeight();
 
@@ -327,8 +372,12 @@ abstract class Pdf extends TcpdfFpdi
         $this->rectangle($size, $size, $x, $y, $c);
     }
 
-    protected function redimenssion(float $originalWidth, float $originalHeight, float $targetWidth, float $targetHeight): array
-    {
+    protected function redimenssion(
+        float $originalWidth,
+        float $originalHeight,
+        float $targetWidth,
+        float $targetHeight,
+    ): array {
         while ($originalWidth > $targetWidth || $originalHeight > $targetHeight) {
             $ratio = 1 / ($originalWidth / $targetWidth);
 
@@ -340,14 +389,16 @@ abstract class Pdf extends TcpdfFpdi
             $originalHeight = $originalHeight * $ratio;
         }
 
-        return array($originalWidth, $originalHeight);
+        return [$originalWidth, $originalHeight];
     }
 
     protected function showGrid(int $size = 5): void
     {
         for ($i = 0; $i < 100; $i++) {
-            $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
-            $this->traceVLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
+            $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']
+            );
+            $this->traceVLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']
+            );
         }
     }
 }

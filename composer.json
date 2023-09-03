@@ -2,7 +2,9 @@
     "name": "2lenet/pdf-generator-bundle",
     "type": "symfony-bundle",
     "description": "Pdf generator",
-    "keywords": ["pdf"],
+    "keywords": [
+        "pdf"
+    ],
     "license": "MIT",
     "require": {
         "php": "^8.0",
@@ -27,7 +29,9 @@
         "symfony/dotenv": "^6.0"
     },
     "autoload": {
-        "psr-4": { "Lle\\PdfGeneratorBundle\\": "src/" }
+        "psr-4": {
+            "Lle\\PdfGeneratorBundle\\": "src/"
+        }
     },
     "minimum-stability": "stable",
     "require-dev": {
