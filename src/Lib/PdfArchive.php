@@ -7,14 +7,22 @@ use setasign\Fpdi\PdfParser\StreamReader;
 
 class PdfArchive extends Fpdi
 {
-    const ICC_PROFILE_PATH = __DIR__ . "/icc/profile.icc";
+    public const ICC_PROFILE_PATH = __DIR__ . "/icc/profile.icc";
+
     protected array $attachments = [];
+
     protected array $metadata_xmp = [];
+
     protected int $description_index = 0;
+
     protected int $output_intent_index = 0;
+
     protected int $n_files;
+
     protected \DateTime $createdAt;
+
     protected string $part;
+
     protected string $conformance;
 
     public function __construct(
@@ -91,7 +99,7 @@ class PdfArchive extends Fpdi
         $this->_newobj();
         $this->_put('<<');
 
-        //filtre de décompression
+        // Decompression filter
         $this->_put('/Filter /FlateDecode');
 
         if ($file_info['subtype']) {
@@ -115,7 +123,7 @@ class PdfArchive extends Fpdi
             $this->Error('Cannot open file: ' . $file_info['file']);
         }
 
-        //compression du contenu
+        // Content compression
         $fc = gzcompress($fc);
 
         $this->_put('/Length ' . strlen($fc));
@@ -128,9 +136,6 @@ class PdfArchive extends Fpdi
     protected function _put_file_specification(array $file_info): void
     {
         $this->_newobj();
-
-        //        Never defined
-        //        $this->file_spe_dictionnary_index = $this->n;
 
         $this->_put('<<');
         $this->_put('/F (' . $this->_escape($file_info['name']) . ')');
@@ -294,7 +299,7 @@ class PdfArchive extends Fpdi
     }
 
     /**
-     * Redéfini la méthode _putheader
+     * Redefines the _putheader method
      */
     protected function _putheader(): void
     {

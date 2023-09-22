@@ -3,13 +3,13 @@
 namespace Lle\PdfGeneratorBundle\Lib;
 
 use PDFMerger as Base;
-use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 
 class PdfMerger extends Base
 {
-    public function toTcpdfFpdi(): TcpdfFpdi
+    public function toTcpdfFpdi(): Fpdi
     {
-        $pdf = new TcpdfFpdi();
+        $pdf = new Fpdi();
 
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $this->merge('file', $tmpFile);

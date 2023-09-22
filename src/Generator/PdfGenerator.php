@@ -3,7 +3,6 @@
 namespace Lle\PdfGeneratorBundle\Generator;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Doctrine\Persistence\ObjectRepository;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
@@ -11,17 +10,17 @@ use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 use Lle\PdfGeneratorBundle\Lib\Signature;
 use setasign\Fpdi\TcpdfFpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class PdfGenerator
 {
-    const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
+    public const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
+
     private array $generators = [];
+
     private array $criteria;
+
     private array $options = [];
 
     public function __construct(
@@ -51,7 +50,7 @@ class PdfGenerator
 
         foreach ($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
-                // instanciate the generator type from model type
+                // Instanciate the generator type from model type
                 $types = explode(',', $model->getType());
 
                 if (isset($this->generators[$types[$k] ?? $types[0]])) {

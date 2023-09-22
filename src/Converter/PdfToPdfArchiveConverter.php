@@ -4,7 +4,6 @@ namespace Lle\PdfGeneratorBundle\Converter;
 
 use Lle\PdfGeneratorBundle\Lib\PdfArchive;
 use setasign\Fpdi\PdfParser\StreamReader;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Twig\Environment;
 
 class PdfToPdfArchiveConverter
@@ -16,7 +15,7 @@ class PdfToPdfArchiveConverter
     }
 
     /**
-     * Converti un PDF en PDF/A-3B respectant les normes ZUGFeRD
+     * Convert a PDF to PDF/A-3B compliant with ZUGFeRD standards
      */
     public function convertToZugferdPdf(string $invoicePdf, string $zugferdXml, array $metadata): string
     {
@@ -24,7 +23,7 @@ class PdfToPdfArchiveConverter
 
         $pageCount = $zugferdPdf->setSourceFile($invoicePdf);
 
-        //recopie les pages du pdf original
+        // Copy the pages from the original PDF
         for ($i = 1; $i <= $pageCount; ++$i) {
             $tplIdx = $zugferdPdf->importPage($i, '/MediaBox');
 
@@ -34,10 +33,10 @@ class PdfToPdfArchiveConverter
 
         $xmlStreamReader = StreamReader::createByString($zugferdXml);
 
-        //attache le xml au pdf
+        // Attach the XML to the PDF
         $zugferdPdf->attachStreamReader($xmlStreamReader, self::ZUGFERD_XML_FILE_NAME);
 
-        //ajout des xmp pour la validation PDF/A
+        // XML added for PDF/A validation
         $zugferdPdf->addXMLMetadata(
             $this->prepareZugferdMetadata(
                 array_merge($metadata, [
@@ -49,7 +48,7 @@ class PdfToPdfArchiveConverter
             )
         );
 
-        //génération du pdf
+        // PDF generation
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
 
         $zugferdPdf->Output($tmpFile, 'F');

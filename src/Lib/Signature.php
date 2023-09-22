@@ -2,14 +2,13 @@
 
 namespace Lle\PdfGeneratorBundle\Lib;
 
-use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 
 class Signature
 {
-    /** @var int[]|null */
-    private $bgColor = null;
-    /** @var int[]|null */
-    private $sgColor = null;
+    private ?array $bgColor = null;
+
+    private ?array $sgColor = null;
 
     public function __construct(
         private ?string $certificate = null,
@@ -92,8 +91,6 @@ class Signature
             $pointsPolygones[] = $points;
         }
 
-        $points = [];
-
         return $this->setPoints($pointsPolygones, $position);
     }
 
@@ -143,14 +140,14 @@ class Signature
         return $this;
     }
 
-    public function signe(PdfMerger $pdfMerger): TcpdfFpdi
+    public function signe(PdfMerger $pdfMerger): Fpdi
     {
         $pdf = $pdfMerger->toTcpdfFpdi();
 
         return $this->signeTcpdfFpdi($pdf);
     }
 
-    public function signeTcpdfFpdi(TcpdfFpdi $pdf): TcpdfFpdi
+    public function signeTcpdfFpdi(Fpdi $pdf): Fpdi
     {
         if ($this->image) {
             $s = $this->position['s'] ?? 8;
@@ -203,9 +200,6 @@ class Signature
         return $pdf;
     }
 
-    /**
-     * @return int[]|null
-     */
     public function getBgColor(): ?array
     {
         return $this->bgColor;
@@ -222,9 +216,6 @@ class Signature
         return $this;
     }
 
-    /**
-     * @return int[]|null
-     */
     public function getSgColor(): ?array
     {
         return $this->sgColor;

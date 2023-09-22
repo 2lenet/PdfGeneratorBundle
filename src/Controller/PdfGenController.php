@@ -20,8 +20,10 @@ use Symfony\Component\Yaml\Yaml;
 #[Route("/admin/pdfgen")]
 class PdfGenController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em, private PdfGenerator $pdfGenerator)
-    {
+    public function __construct(
+        private EntityManagerInterface $em,
+        private PdfGenerator $pdfGenerator
+    ) {
     }
 
     #[Route("/downloadModele", name: "lle_pdf_generator_download_model")]
@@ -115,7 +117,7 @@ class PdfGenController extends AbstractController
                 $fields = [];
                 $prefix = $nameConverter->normalize($metaDataEntity->getReflectionClass()->getShortName());
 
-                // attribut groupe pdfgenerator
+                // Groupe PdfGenerator attribute
                 foreach ($metaDataEntity->getReflectionClass()->getProperties() as $property) {
                     $annotationName = $annotationReader->getPropertyAnnotation(
                         $property,
@@ -127,7 +129,7 @@ class PdfGenController extends AbstractController
                     }
                 }
 
-                // getter groupe pdfgenerator
+                // Groupe PdfGenerator getter
                 foreach ($metaDataEntity->getReflectionClass()->getMethods() as $method) {
                     $annotationName = $annotationReader->getMethodAnnotation(
                         $method,
