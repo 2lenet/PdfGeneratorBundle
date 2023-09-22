@@ -253,21 +253,17 @@ class PdfArchive extends Fpdi
         parent::_putcatalog();
 
         if (!empty($this->attachments)) {
-            if (is_array($this->attachments)) {
-                $files_ref_str = '';
+            $files_ref_str = '';
 
-                foreach ($this->attachments as $file) {
-                    if ('' != $files_ref_str) {
-                        $files_ref_str .= ' ';
-                    }
-
-                    $files_ref_str .= sprintf('%s 0 R', $file['file_index']);
+            foreach ($this->attachments as $file) {
+                if ('' != $files_ref_str) {
+                    $files_ref_str .= ' ';
                 }
 
-                $this->_put(sprintf('/AF [%s]', $files_ref_str));
-            } else {
-                $this->_put(sprintf('/AF %s 0 R', $this->n_files));
+                $files_ref_str .= sprintf('%s 0 R', $file['file_index']);
             }
+
+            $this->_put(sprintf('/AF [%s]', $files_ref_str));
 
             if (0 != $this->description_index) {
                 $this->_put(sprintf('/Metadata %s 0 R', $this->description_index));

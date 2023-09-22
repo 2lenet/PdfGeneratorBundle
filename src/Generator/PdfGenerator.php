@@ -176,7 +176,10 @@ class PdfGenerator
 
     public function newInstance(): PdfModelInterface
     {
-        return $this->em->getClassMetadata($this->parameterBag->get('lle.pdf.class'))->newInstance();
+        /** @var class-string $class */
+        $class = $this->parameterBag->get('lle.pdf.class');
+
+        return $this->em->getClassMetadata($class)->newInstance();
     }
 
     public function getRepository(): ObjectRepository
