@@ -96,13 +96,6 @@ abstract class Pdf extends Fpdi
         $this->w($w - 5, 6, '', ['w' => $w, 'h' => $h - 9, 'align' => 'R']); // Unknown $this->getPage() method
     }
 
-    public function Output($name = 'doc.pdf', $dest = 'I'): string
-    {
-        parent::Output($name, $dest);
-
-        return '';
-    }
-
     public function nombreDePageSur(string $pdf): false|int
     {
         if (false !== ($file = file_get_contents($pdf))) {
@@ -338,10 +331,8 @@ abstract class Pdf extends Fpdi
     protected function showGrid(int $size = 5): void
     {
         for ($i = 0; $i < 100; $i++) {
-            $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']
-            );
-            $this->traceVLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']
-            );
+            $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
+            $this->traceVLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
         }
     }
 }

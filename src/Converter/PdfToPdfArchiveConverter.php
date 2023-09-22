@@ -8,7 +8,7 @@ use Twig\Environment;
 
 class PdfToPdfArchiveConverter
 {
-    const ZUGFERD_XML_FILE_NAME = 'zugferd-invoice.xml';
+    public const ZUGFERD_XML_FILE_NAME = 'zugferd-invoice.xml';
 
     public function __construct(protected Environment $twig)
     {
