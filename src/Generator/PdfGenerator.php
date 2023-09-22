@@ -8,7 +8,7 @@ use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 use Lle\PdfGeneratorBundle\Lib\Signature;
-use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -85,7 +85,7 @@ class PdfGenerator
     {
         $model = $this->getRepository()->findOneBy($this->getCriteria($code));
 
-        if ($model == null) {
+        if (!$model) {
             throw new ModelNotFoundException("no model found (" . $code . ")");
         }
 
@@ -104,17 +104,17 @@ class PdfGenerator
         return $this;
     }
 
-    public function signe(PdfMerger $pdfMerger, Signature $signature): TcpdfFpdi
+    public function signe(PdfMerger $pdfMerger, Signature $signature): Fpdi
     {
         return $signature->signe($pdfMerger);
     }
 
-    public function signeTcpdfFpdi(TcpdfFpdi $pdf, Signature $signature): TcpdfFpdi
+    public function signeTcpdfFpdi(Fpdi $pdf, Signature $signature): Fpdi
     {
         return $signature->signeTcpdfFpdi($pdf);
     }
 
-    public function signes(PdfMerger $pdfMerger, array $signatures): TcpdfFpdi
+    public function signes(PdfMerger $pdfMerger, array $signatures): Fpdi
     {
         $pdf = $pdfMerger->toTcpdfFpdi();
 

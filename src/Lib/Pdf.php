@@ -53,7 +53,7 @@ abstract class Pdf extends Fpdi
     {
         $colors = $this->myColors();
 
-        if (is_array($colors) and isset($colors[$c])) {
+        if (is_array($colors) && isset($colors[$c])) {
             return $this->hexaToArrayColor($colors[$c]);
         }
 
@@ -103,7 +103,7 @@ abstract class Pdf extends Fpdi
         return '';
     }
 
-    function nombreDePageSur(string $pdf): false|int
+    public function nombreDePageSur(string $pdf): false|int
     {
         if (false !== ($file = file_get_contents($pdf))) {
             $pages = preg_match_all("/\/Page\W/", $file, $matches);
