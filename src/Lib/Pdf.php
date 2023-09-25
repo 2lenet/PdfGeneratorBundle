@@ -2,12 +2,14 @@
 
 namespace Lle\PdfGeneratorBundle\Lib;
 
-use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 
-abstract class Pdf extends TcpdfFpdi
+abstract class Pdf extends Fpdi
 {
     protected bool $debug = false;
+
     protected array $data;
+
     protected string $rootPath;
 
     public function generate(): void
@@ -26,7 +28,6 @@ abstract class Pdf extends TcpdfFpdi
 
     protected function init(): void
     {
-        return;
     }
 
     public function initiate(): void
@@ -43,7 +44,7 @@ abstract class Pdf extends TcpdfFpdi
 
     protected function log(string $str): void
     {
-        if ($this->debug == true) {
+        if ($this->debug) {
             echo $str . '<br/>';
         }
     }
@@ -52,7 +53,7 @@ abstract class Pdf extends TcpdfFpdi
     {
         $colors = $this->myColors();
 
-        if (is_array($colors) and isset($colors[$c])) {
+        if (is_array($colors) && isset($colors[$c])) {
             return $this->hexaToArrayColor($colors[$c]);
         }
 
@@ -76,7 +77,7 @@ abstract class Pdf extends TcpdfFpdi
 
     public function title(): string
     {
-        return "";
+        return '';
     }
 
     public function header(): void
@@ -95,14 +96,7 @@ abstract class Pdf extends TcpdfFpdi
         $this->w($w - 5, 6, '', ['w' => $w, 'h' => $h - 9, 'align' => 'R']); // Unknown $this->getPage() method
     }
 
-    public function Output($name = 'doc.pdf', $dest = 'I'): string
-    {
-        parent::Output($name, $dest);
-
-        return '';
-    }
-
-    function nombreDePageSur(string $pdf): false|int
+    public function nombreDePageSur(string $pdf): false|int
     {
         if (false !== ($file = file_get_contents($pdf))) {
             $pages = preg_match_all("/\/Page\W/", $file, $matches);
@@ -111,26 +105,6 @@ abstract class Pdf extends TcpdfFpdi
         }
 
         return false;
-    }
-
-    public function month(int $index): string
-    {
-        $mois = [
-            'Janvier',
-            'Fevrier',
-            'Mars',
-            'Avril',
-            'Mai',
-            'Juin',
-            'Juillet',
-            'Août',
-            'Septembre',
-            'Octobre',
-            'Novembre',
-            'Décembre',
-        ];
-
-        return $mois[$index - 1];
     }
 
     protected function hexaToArrayColor(string $color): array
@@ -150,33 +124,24 @@ abstract class Pdf extends TcpdfFpdi
         ?float $height = null,
         array $options = [],
     ): bool {
-        //        Unknwon $this->get() method
-        //        $file = $this->get('kernel')->getProjectDir() . '/' . $file;
-
-        $round = (isset($options['round'])) ? $options['round'] : false;
-        $crop = (isset($options['crop'])) ? $options['crop'] : false;
-        $center = (isset($options['center'])) ? $options['center'] : false;
+        $round = isset($options['round']) && $options['round'];
+        $crop = isset($options['crop']) && $options['crop'];
+        $center = isset($options['center']) && $options['center'];
 
         $palign = '';
         $align = 'N';
 
         $resize = 0;
         $dpi = 300;
-        $scal = 1;
-
-        $background = $this->hexaToArrayColor('FFFFFF');
-        $target = $file;
 
         if ($file && @fopen($file, 'r')) {
             $size = @getimagesize($file);
 
             if ($size) {
-                $width = ($width) ? $width : $size[0];
-                $height = ($height) ? $height : $size[1];
+                $width = ($width) ?: $size[0];
+                $height = ($height) ?: $size[1];
 
-                $nameFolder = basename(dirname($file));
-
-                if ($crop == false) {
+                if (!$crop) {
                     $size = $this->redimenssion($size[0], $size[1], $width, $height);
 
                     $w = $size[0];
@@ -201,7 +166,7 @@ abstract class Pdf extends TcpdfFpdi
                         $background = new \Imagick();
                         $background->newImage($size[0], $size[1], new \ImagickPixel('white'));
 
-                        $i->roundCorners(500, 500);
+                        $i->roundCornersImage(500, 500);
                         $i->compositeImage($background, \imagick::COMPOSITE_DSTATOP, 0, 0);
                     }
 
@@ -222,14 +187,6 @@ abstract class Pdf extends TcpdfFpdi
                     $resize,
                     $dpi,
                     $palign,
-                    false,
-                    false,
-                    0,
-                    false,
-                    false,
-                    false,
-                    false,
-                    []
                 );
             }
 
@@ -249,16 +206,8 @@ abstract class Pdf extends TcpdfFpdi
     public function changeFontFamily(string $police): void
     {
         $data = $this->rootPath . '/fonts';
-        $file = $data . $police . '.ttf';
 
-        //        Unknown $this->addTTFfont() method
-        //        if (file_exists($file)) {
-        //            $fontname = $this->addTTFfont($file, 'TrueTypeUnicode', '', 32, $data);
-        //
-        //            $this->SetFont($fontname, '', null, $data . $fontname . '.php');
-        //        } else {
         $this->SetFont($police);
-        //        }
     }
 
     protected function w(?float $x, ?float $y, string $html, array $options = []): void
@@ -281,15 +230,6 @@ abstract class Pdf extends TcpdfFpdi
         array $c,
         bool $moveX = false,
     ): void {
-        $oldW = $w;
-
-        $widthText = $this->getStringWidth($html);
-
-        // $w = ($w > $widthText)? $w:$widthText+10;
-        if ($w > $oldW && $moveX) {
-            $x += ($oldW - $w) / 2;
-        }
-
         $this->rectangle($w, $h, $x, $y, $c);
 
         $this->w($x, $y, $html, ['w' => $w, 'h' => $h, 'align' => $align]);
@@ -304,11 +244,7 @@ abstract class Pdf extends TcpdfFpdi
     {
         $fonts = $this->myFonts();
 
-        if (isset($fonts[$f])) {
-            $f = $fonts[$f];
-        } else {
-            $f = ['size' => 9, 'color' => 'default', 'family' => 'helvetica'];
-        }
+        $f = $fonts[$f] ?? ['size' => 9, 'color' => 'default', 'family' => 'helvetica'];
 
         if (isset($f['size'])) {
             $this->SetFontSize($f['size']);
@@ -395,10 +331,8 @@ abstract class Pdf extends TcpdfFpdi
     protected function showGrid(int $size = 5): void
     {
         for ($i = 0; $i < 100; $i++) {
-            $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']
-            );
-            $this->traceVLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']
-            );
+            $this->traceHLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
+            $this->traceVLine($i * $size, ['weight' => ($i % 5) ? 0.2 : 0.4, 'color' => ($i % 5) ? 'default' : 'strong']);
         }
     }
 }

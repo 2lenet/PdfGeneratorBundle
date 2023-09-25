@@ -8,14 +8,14 @@ use PhpOffice\PhpWord\Element\AbstractElement;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Twig\Environment;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
     public function __construct(
-        private PropertyAccessor $propertyAccess,
+        private PropertyAccessorInterface $propertyAccess,
         private Environment $twig,
     ) {
     }

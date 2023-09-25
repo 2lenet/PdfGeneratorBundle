@@ -13,16 +13,13 @@ final class CreateModelCommand extends Command
 {
     protected static $defaultName = 'lle:pdf-generator:create-model';
 
+    protected static $defaultDescription = 'Create a new pdf model';
+
     public function __construct(
         private EntityManagerInterface $em,
         private PdfGenerator $generator,
     ) {
         parent::__construct();
-    }
-
-    protected function configure(): void
-    {
-        $this->setDescription('Create a new pdf model');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

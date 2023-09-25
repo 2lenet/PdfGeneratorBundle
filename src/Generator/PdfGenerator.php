@@ -3,25 +3,24 @@
 namespace Lle\PdfGeneratorBundle\Generator;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\EntityRepository;
 use Doctrine\Persistence\ObjectRepository;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Lib\PdfMerger;
 use Lle\PdfGeneratorBundle\Lib\Signature;
-use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\Finder\Finder;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
-use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 class PdfGenerator
 {
-    const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
+    public const OPTION_EMPTY_NOTFOUND_VALUE = 'oenv';
+
     private array $generators = [];
+
     private array $criteria;
+
     private array $options = [];
 
     public function __construct(
@@ -51,7 +50,7 @@ class PdfGenerator
 
         foreach ($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
-                // instanciate the generator type from model type
+                // Instanciate the generator type from model type
                 $types = explode(',', $model->getType());
 
                 if (isset($this->generators[$types[$k] ?? $types[0]])) {
@@ -86,7 +85,7 @@ class PdfGenerator
     {
         $model = $this->getRepository()->findOneBy($this->getCriteria($code));
 
-        if ($model == null) {
+        if (!$model) {
             throw new ModelNotFoundException("no model found (" . $code . ")");
         }
 
@@ -105,17 +104,17 @@ class PdfGenerator
         return $this;
     }
 
-    public function signe(PdfMerger $pdfMerger, Signature $signature): TcpdfFpdi
+    public function signe(PdfMerger $pdfMerger, Signature $signature): Fpdi
     {
         return $signature->signe($pdfMerger);
     }
 
-    public function signeTcpdfFpdi(TcpdfFpdi $pdf, Signature $signature): TcpdfFpdi
+    public function signeTcpdfFpdi(Fpdi $pdf, Signature $signature): Fpdi
     {
         return $signature->signeTcpdfFpdi($pdf);
     }
 
-    public function signes(PdfMerger $pdfMerger, array $signatures): TcpdfFpdi
+    public function signes(PdfMerger $pdfMerger, array $signatures): Fpdi
     {
         $pdf = $pdfMerger->toTcpdfFpdi();
 
@@ -177,7 +176,10 @@ class PdfGenerator
 
     public function newInstance(): PdfModelInterface
     {
-        return $this->em->getClassMetadata($this->parameterBag->get('lle.pdf.class'))->newInstance();
+        /** @var class-string $class */
+        $class = $this->parameterBag->get('lle.pdf.class');
+
+        return $this->em->getClassMetadata($class)->newInstance();
     }
 
     public function getRepository(): ObjectRepository

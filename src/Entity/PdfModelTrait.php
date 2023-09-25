@@ -4,7 +4,6 @@ namespace Lle\PdfGeneratorBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 trait PdfModelTrait
@@ -13,22 +12,31 @@ trait PdfModelTrait
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
     private ?int $id;
+
     #[ORM\Column(name: "code", type: "string", length: 50, nullable: false)]
     private ?string $code;
+
     #[ORM\Column(name: "path", type: "string", length: 255, nullable: false)]
     private ?string $path;
+
     #[ORM\Column(name: "libelle", type: "string", length: 255, nullable: false)]
     private ?string $libelle;
+
     #[ORM\Column(name: "type", type: "string", length: 255, nullable: true)]
     private ?string $type;
+
     #[ORM\Column(name: "datamodel", type: "string", length: 255, nullable: true)]
     private ?string $datamodel;
+
     #[ORM\Column(name: "description", type: "text", nullable: true)]
     private ?string $description;
+
     #[Vich\UploadableField(mapping: "pdf_model", fileNameProperty: "path")]
     private ?File $file;
+
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?\DateTime $updatedAt;
+
     #[ORM\Column(type: "boolean", nullable: true)]
     private ?bool $checkFile;
 
