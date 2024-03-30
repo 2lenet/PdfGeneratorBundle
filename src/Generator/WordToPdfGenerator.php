@@ -58,16 +58,14 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             }
         }
     }
-
-    private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
+ private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
     {
         $templateProcessor = new TemplateProcessor($source);
 
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $this->compile($params, $templateProcessor, $options);
         $templateProcessor->saveAs($tmpFile);
-
-        if ($options['twig'] ?? false) {
+        /*if ($options['twig'] ?? false) {
             $process = new Process(['unoconvert ', '--convert-to', 'html', $tmpFile, $tmpFile . '.html']);
             $process->run();
 
@@ -75,15 +73,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
 
             file_put_contents($tmpFile . '.html.twig', $template->render($params));
             $tmpFile = $tmpFile . '.html.twig';
-        }
-
-        $process = new Process(['unoconvert', $tmpFile, $savePath]);
-        $process->run();
-
-        if (!$process->isSuccessful()) {
-            throw new ProcessFailedException($process);
-        }
+        }*/
+        $rep = $this->httpClient->request("POST", "http://unoserver/convert", ['body' => file_get_contents($tmpFile)]);
+        file_put_contents($savePath, $rep->getContent());
     }
+
+   
 
     public function getVariables(string $source): array
     {
