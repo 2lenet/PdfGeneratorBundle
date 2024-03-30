@@ -8,9 +8,9 @@ services:
         arguments: ["@doctrine.orm.default_entity_manager", "@Lle\\PdfGeneratorBundle\\Generator\\PdfGenerator"]
 
     Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator:
-        class: 'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
-        arguments: ['@property_accessor']
-        tags: ['lle.pdf.generator','@twig']
+    #    class:  'Lle\PdfGeneratorBundle\Generator\WordToPdfGenerator'
+    #    arguments: [ '@property_accessor','@twig']
+        tags: ['lle.pdf.generator']
 
     Lle\PdfGeneratorBundle\Generator\TcpdfGenerator:
         tags: ['lle.pdf.generator']
