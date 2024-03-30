@@ -3,17 +3,17 @@
 namespace Lle\PdfGeneratorBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Style\SymfonyStyle;
+use Lle\PdfGeneratorBundle\Entity\PdfModel;
+use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\SymfonyStyle;
 
+#[AsCommand(name: 'lle:pdf-generator:create-model', description: 'Create a new pdf model')]
 final class CreateModelCommand extends Command
 {
-    protected static $defaultName = 'lle:pdf-generator:create-model';
-
-    protected static $defaultDescription = 'Create a new pdf model';
 
     public function __construct(
         private EntityManagerInterface $em,
