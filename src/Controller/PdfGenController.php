@@ -20,8 +20,10 @@ use Symfony\Component\Yaml\Yaml;
 #[Route("/admin/pdfgen")]
 class PdfGenController extends AbstractController
 {
-    public function __construct(private EntityManagerInterface $em, private PdfGenerator $pdfGenerator)
-    {
+    public function __construct(
+        private EntityManagerInterface $em,
+        private PdfGenerator $pdfGenerator
+    ) {
     }
 
     #[Route("/downloadModele", name: "lle_pdf_generator_download_model")]
@@ -74,7 +76,10 @@ class PdfGenController extends AbstractController
             if ($model->getCheckFile()) {
                 $flashBag->add('success', 'Fichier valider');
             } else {
-                $flashBag->add('error', 'Une erreur est survenue, il est impossible de générer un PDF avec les données actuel de ce modèle');
+                $flashBag->add(
+                    'error',
+                    'Une erreur est survenue, il est impossible de générer un PDF avec les données actuel de ce modèle'
+                );
             }
 
             return new RedirectResponse($request->server->get('HTTP_REFERER'));
@@ -95,7 +100,7 @@ class PdfGenController extends AbstractController
         }
 
         return $this->render('@LlePdfGenerator/balise/index.html.twig', [
-            'models' => $models
+            'models' => $models,
         ]);
     }
 
@@ -112,18 +117,24 @@ class PdfGenController extends AbstractController
                 $fields = [];
                 $prefix = $nameConverter->normalize($metaDataEntity->getReflectionClass()->getShortName());
 
-                // attribut groupe pdfgenerator
+                // Groupe PdfGenerator attribute
                 foreach ($metaDataEntity->getReflectionClass()->getProperties() as $property) {
-                    $annotationName = $annotationReader->getPropertyAnnotation($property, 'Symfony\Component\Serializer\Annotation\Groups');
+                    $annotationName = $annotationReader->getPropertyAnnotation(
+                        $property,
+                        'Symfony\Component\Serializer\Annotation\Groups'
+                    );
 
                     if ($annotationName && in_array($module, $annotationName->getGroups())) {
                         $fields[] = $prefix . '.' . $nameConverter->normalize($property->name);
                     }
                 }
 
-                // getter groupe pdfgenerator
+                // Groupe PdfGenerator getter
                 foreach ($metaDataEntity->getReflectionClass()->getMethods() as $method) {
-                    $annotationName = $annotationReader->getMethodAnnotation($method, 'Symfony\Component\Serializer\Annotation\Groups');
+                    $annotationName = $annotationReader->getMethodAnnotation(
+                        $method,
+                        'Symfony\Component\Serializer\Annotation\Groups'
+                    );
 
                     if ($annotationName && in_array($module, $annotationName->getGroups())) {
                         $fields[] = $prefix . '.' . $nameConverter->normalize(str_replace('get', '', $method->name));
@@ -147,7 +158,7 @@ class PdfGenController extends AbstractController
 
         return $this->render('@LlePdfGenerator/balise/balises.html.twig', [
             'balisesArray' => $balises,
-            'module' => $module
+            'module' => $module,
         ]);
     }
 }

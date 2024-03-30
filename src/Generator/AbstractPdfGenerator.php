@@ -2,8 +2,6 @@
 
 namespace Lle\PdfGeneratorBundle\Generator;
 
-use PhpOffice\PhpWord\TemplateProcessor;
-
 abstract class AbstractPdfGenerator implements PdfGeneratorInterface
 {
     protected string $pdfPath;

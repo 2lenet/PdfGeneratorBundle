@@ -4,7 +4,6 @@ namespace Lle\PdfGeneratorBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 trait PdfModelTrait
@@ -139,7 +138,6 @@ trait PdfModelTrait
     {
         return $this->updatedAt;
     }
-
 
     public function setUpdatedAt(?\DateTime $updatedAt): self
     {

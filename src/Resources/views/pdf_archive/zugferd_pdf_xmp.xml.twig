@@ -10,12 +10,15 @@
 
     <!-- PDF/A extension schema description for the Factur-X schema.
        It is crucial for PDF/A-3 conformance. Don't touch! -->
-    <rdf:Description xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/" xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#" xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#" rdf:about="">
+    <rdf:Description xmlns:pdfaExtension="http://www.aiim.org/pdfa/ns/extension/"
+                     xmlns:pdfaSchema="http://www.aiim.org/pdfa/ns/schema#"
+                     xmlns:pdfaProperty="http://www.aiim.org/pdfa/ns/property#" rdf:about="">
         <pdfaExtension:schemas>
             <rdf:Bag>
                 <rdf:li rdf:parseType="Resource">
                     <pdfaSchema:schema>Factur-X PDFA Extension Schema</pdfaSchema:schema>
-                    <pdfaSchema:namespaceURI>urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#</pdfaSchema:namespaceURI>
+                    <pdfaSchema:namespaceURI>urn:factur-x:pdfa:CrossIndustryDocument:invoice:1p0#
+                    </pdfaSchema:namespaceURI>
                     <pdfaSchema:prefix>fx</pdfaSchema:prefix>
                     <pdfaSchema:property>
                         <rdf:Seq>
@@ -23,7 +26,8 @@
                                 <pdfaProperty:name>DocumentFileName</pdfaProperty:name>
                                 <pdfaProperty:valueType>Text</pdfaProperty:valueType>
                                 <pdfaProperty:category>external</pdfaProperty:category>
-                                <pdfaProperty:description>name of the embedded XML invoice file</pdfaProperty:description>
+                                <pdfaProperty:description>name of the embedded XML invoice file
+                                </pdfaProperty:description>
                             </rdf:li>
                             <rdf:li rdf:parseType="Resource">
                                 <pdfaProperty:name>DocumentType</pdfaProperty:name>
@@ -35,13 +39,15 @@
                                 <pdfaProperty:name>Version</pdfaProperty:name>
                                 <pdfaProperty:valueType>Text</pdfaProperty:valueType>
                                 <pdfaProperty:category>external</pdfaProperty:category>
-                                <pdfaProperty:description>The actual version of the Factur-X XML schema</pdfaProperty:description>
+                                <pdfaProperty:description>The actual version of the Factur-X XML schema
+                                </pdfaProperty:description>
                             </rdf:li>
                             <rdf:li rdf:parseType="Resource">
                                 <pdfaProperty:name>ConformanceLevel</pdfaProperty:name>
                                 <pdfaProperty:valueType>Text</pdfaProperty:valueType>
                                 <pdfaProperty:category>external</pdfaProperty:category>
-                                <pdfaProperty:description>The conformance level of the embedded Factur-X data</pdfaProperty:description>
+                                <pdfaProperty:description>The conformance level of the embedded Factur-X data
+                                </pdfaProperty:description>
                             </rdf:li>
                         </rdf:Seq>
                     </pdfaSchema:property>

@@ -2,24 +2,21 @@
 
 namespace Lle\PdfGeneratorBundle\Lib;
 
-use setasign\Fpdi\TcpdfFpdi;
+use setasign\Fpdi\Tcpdf\Fpdi;
 
 class Signature
 {
-    /** @var int[]|null  */
-    private $bgColor = null;
+    private ?array $bgColor = null;
 
-    /** @var int[]|null  */
-    private $sgColor = null;
+    private ?array $sgColor = null;
 
     public function __construct(
         private ?string $certificate = null,
         private ?string $password = null,
         private array $data = [],
         private ?string $image = null,
-        private ?array $position = null
-    )
-    {
+        private ?array $position = null,
+    ) {
     }
 
     public function getData(): array
@@ -94,8 +91,6 @@ class Signature
             $pointsPolygones[] = $points;
         }
 
-        $points = [];
-
         return $this->setPoints($pointsPolygones, $position);
     }
 
@@ -145,14 +140,14 @@ class Signature
         return $this;
     }
 
-    public function signe(PdfMerger $pdfMerger): TcpdfFpdi
+    public function signe(PdfMerger $pdfMerger): Fpdi
     {
         $pdf = $pdfMerger->toTcpdfFpdi();
 
         return $this->signeTcpdfFpdi($pdf);
     }
 
-    public function signeTcpdfFpdi(TcpdfFpdi $pdf): TcpdfFpdi
+    public function signeTcpdfFpdi(Fpdi $pdf): Fpdi
     {
         if ($this->image) {
             $s = $this->position['s'] ?? 8;
@@ -165,7 +160,7 @@ class Signature
                 $pdf->setPage($this->position['p']);
             }
 
-            $pdf->SetAutoPageBreak(FALSE, PDF_MARGIN_BOTTOM);
+            $pdf->SetAutoPageBreak(false, PDF_MARGIN_BOTTOM);
             $pdf->Image($this->image, $x, $y, $w, $h, 'PNG');
             $pdf->SetFontSize($s);
             $pdf->SetFillColor(255, 255, 255);
@@ -187,7 +182,15 @@ class Signature
         }
 
         if ($this->certificate && $this->password) {
-            $pdf->setSignature('file://' . $this->certificate, 'file://' . $this->certificate, $this->password, '', 2, $this->data, 'A');
+            $pdf->setSignature(
+                'file://' . $this->certificate,
+                'file://' . $this->certificate,
+                $this->password,
+                '',
+                2,
+                $this->data,
+                'A'
+            );
 
             if ($this->image) {
                 $pdf->setSignatureAppearance($x ?? 0, $y ?? 0, $w ?? 0, $h ?? 0);
@@ -197,9 +200,6 @@ class Signature
         return $pdf;
     }
 
-    /**
-     * @return int[]|null
-     */
     public function getBgColor(): ?array
     {
         return $this->bgColor;
@@ -216,9 +216,6 @@ class Signature
         return $this;
     }
 
-    /**
-     * @return int[]|null
-     */
     public function getSgColor(): ?array
     {
         return $this->sgColor;

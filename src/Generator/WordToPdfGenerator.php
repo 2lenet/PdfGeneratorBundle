@@ -2,23 +2,22 @@
 
 namespace Lle\PdfGeneratorBundle\Generator;
 
-use Lle\PdfGeneratorBundle\Lib\PdfIterable;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
+use Lle\PdfGeneratorBundle\Lib\PdfIterable;
 use PhpOffice\PhpWord\Element\AbstractElement;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Twig\Environment;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
     public function __construct(
-        private PropertyAccessor $propertyAccess,
-        private Environment $twig
-    )
-    {
+        private PropertyAccessorInterface $propertyAccess,
+        private Environment $twig,
+    ) {
     }
 
     private function compile(iterable $params, TemplateProcessor $templateProcessor, array $options): void
@@ -59,7 +58,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             }
         }
     }
-    
+
     private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
     {
         $templateProcessor = new TemplateProcessor($source);
@@ -167,8 +166,13 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         return $value;
     }
 
-    private function setVar(TemplateProcessor $templateProcessor, string $variable, array|object $root, string|PropertyPathInterface $var, ?array $match): void
-    {
+    private function setVar(
+        TemplateProcessor $templateProcessor,
+        string $variable,
+        array|object $root,
+        string|PropertyPathInterface $var,
+        ?array $match,
+    ): void {
         if (mb_substr($variable, 0, 4, "UTF-8") === '@img') {
             $img = $this->getImg($root, $var, $match);
 
