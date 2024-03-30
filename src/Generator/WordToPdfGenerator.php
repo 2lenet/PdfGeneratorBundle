@@ -2,14 +2,19 @@
 
 namespace Lle\PdfGeneratorBundle\Generator;
 
-use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Lib\PdfIterable;
+use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use PhpOffice\PhpWord\Element\AbstractElement;
 use PhpOffice\PhpWord\TemplateProcessor;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Twig\Environment;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
@@ -17,6 +22,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
     public function __construct(
         private PropertyAccessorInterface $propertyAccess,
         private Environment $twig,
+        private HttpClientInterface $httpClient,
+        private ParameterBagInterface $parameterBag,
     ) {
     }
 
@@ -58,7 +65,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             }
         }
     }
- private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
+
+    private function wordToPdf(string $source, iterable $params, string $savePath, array $options): void
     {
         $templateProcessor = new TemplateProcessor($source);
 
@@ -77,8 +85,6 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $rep = $this->httpClient->request("POST", "http://unoserver/convert", ['body' => file_get_contents($tmpFile)]);
         file_put_contents($savePath, $rep->getContent());
     }
-
-   
 
     public function getVariables(string $source): array
     {
