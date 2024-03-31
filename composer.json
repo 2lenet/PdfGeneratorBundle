@@ -16,6 +16,7 @@
         "symfony/yaml": "^6.0",
         "laminas/laminas-stdlib": "^3.15",
         "symfony/http-foundation": "^6.0",
+        "symfony/http-client-contracts": "^v3.4.0",
         "doctrine/orm": "^2.6 || ^3.0",
         "symfony/routing": "^6.0",
         "symfony/framework-bundle": "^6.0",
