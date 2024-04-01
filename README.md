@@ -6,8 +6,9 @@
 
 Require: unoserver (for word_to_pdf)
 
-```dockerfile
-RUN apt-get update;apt-get install -y unoserver
+```docker-compose
+    unoserver:
+        image: registry.2le.net/2le/2le:unoserver
 ```
 
 ## Configuration
