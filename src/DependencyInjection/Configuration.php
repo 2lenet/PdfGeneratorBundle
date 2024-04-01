@@ -29,6 +29,7 @@ class Configuration implements ConfigurationInterface
         $nodeBuilder->scalarNode('default_generator')->defaultValue('word_to_pdf')->end();
         $nodeBuilder->scalarNode('path')->defaultValue('data/pdfmodel')->end();
         $nodeBuilder->scalarNode('class')->defaultValue(PdfModel::class)->end();
+        $nodeBuilder->scalarNode('unoserver')->defaultValue('http://unoserver/convert')->end();
         $nodeBuilder->arrayNode('data_models')->scalarPrototype()->end();
 
         return $treeBuilder;

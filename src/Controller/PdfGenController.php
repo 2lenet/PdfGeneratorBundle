@@ -6,6 +6,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +23,7 @@ class PdfGenController extends AbstractController
 {
     public function __construct(
         private EntityManagerInterface $em,
-        private PdfGenerator $pdfGenerator
+        private PdfGenerator $pdfGenerator,
     ) {
     }
 
@@ -89,16 +90,10 @@ class PdfGenController extends AbstractController
     }
 
     #[Route("/balises", name: "lle_pdf_generator_admin_balise")]
-    public function balise(): Response
-    {
-        $configDatas = Yaml::parseFile(__DIR__ . '/../../../../../config/packages/pdf_generator.yaml');
-
-        if (array_key_exists('data_models', $configDatas['lle_pdf_generator'])) {
-            $models = $configDatas['lle_pdf_generator']['data_models'];
-        } else {
-            $models = [0 => 'pdfgenerator'];
-        }
-
+    public function balise(
+        ParameterBagInterface $parameterBag,
+    ): Response {
+        $models = $parameterBag->get('lle.pdf.data_models');
         return $this->render('@LlePdfGenerator/balise/index.html.twig', [
             'models' => $models,
         ]);

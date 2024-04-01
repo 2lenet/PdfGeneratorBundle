@@ -82,7 +82,7 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             file_put_contents($tmpFile . '.html.twig', $template->render($params));
             $tmpFile = $tmpFile . '.html.twig';
         }*/
-        $rep = $this->httpClient->request("POST", "http://unoserver/convert", ['body' => file_get_contents($tmpFile)]);
+        $rep = $this->httpClient->request("POST", $this->parameterBag->get('lle.pdf.unoserver'), ['body' => file_get_contents($tmpFile)]);
         file_put_contents($savePath, $rep->getContent());
     }
 
