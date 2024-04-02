@@ -184,7 +184,8 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             if ($value instanceof AbstractElement) {
                 $templateProcessor->setComplexBlock($variable, $value);
             } else {
-                $templateProcessor->setValue($variable, htmlspecialchars($value));
+                $value1 = str_replace("\n", '</w:t><w:br/><w:t>', $value);
+                $templateProcessor->setValue($variable, htmlspecialchars($value1));
             }
         }
     }
