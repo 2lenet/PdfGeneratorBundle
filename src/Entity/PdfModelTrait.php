@@ -11,34 +11,34 @@ trait PdfModelTrait
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private ?int $id;
+    private ?int $id = null;
 
     #[ORM\Column(name: "code", type: "string", length: 50, nullable: false)]
-    private ?string $code;
+    private ?string $code = null;
 
     #[ORM\Column(name: "path", type: "string", length: 255, nullable: false)]
-    private ?string $path;
+    private ?string $path = null;
 
     #[ORM\Column(name: "libelle", type: "string", length: 255, nullable: false)]
-    private ?string $libelle;
+    private ?string $libelle = null;
 
     #[ORM\Column(name: "type", type: "string", length: 255, nullable: true)]
-    private ?string $type;
+    private ?string $type = null;
 
     #[ORM\Column(name: "datamodel", type: "string", length: 255, nullable: true)]
-    private ?string $datamodel;
+    private ?string $datamodel = null;
 
     #[ORM\Column(name: "description", type: "text", nullable: true)]
-    private ?string $description;
+    private ?string $description = null;
 
     #[Vich\UploadableField(mapping: "pdf_model", fileNameProperty: "path")]
-    private ?File $file;
+    private ?File $file = null;
 
     #[ORM\Column(type: "datetime", nullable: true)]
-    private ?\DateTime $updatedAt;
+    private ?\DateTime $updatedAt = null;
 
     #[ORM\Column(type: "boolean", nullable: true)]
-    private ?bool $checkFile;
+    private ?bool $checkFile = null;
 
     public function __toString(): string
     {
