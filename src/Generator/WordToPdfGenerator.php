@@ -50,7 +50,6 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                         } else {
                             $iteratedVariable = $variable . '#' . ++$i;
                         }
-
                         $this->setVar($templateProcessor, $iteratedVariable, $item, $var, $img);
                     }
                 } else {
@@ -181,11 +180,12 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         } else {
             $value = $this->getValue($root, $var);
 
+
             if ($value instanceof AbstractElement) {
                 $templateProcessor->setComplexBlock($variable, $value);
             } else {
-                $value1 = str_replace("\n", '</w:t><w:br/><w:t>', $value);
-                $templateProcessor->setValue($variable, htmlspecialchars($value1));
+                $value1 = str_replace("\n", '</w:t><w:br/><w:t>', htmlspecialchars($value));
+                $templateProcessor->setValue($variable, $value1);
             }
         }
     }
