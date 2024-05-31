@@ -21,7 +21,6 @@ class WordToPdfGenerator extends AbstractPdfGenerator
 {
     public function __construct(
         private PropertyAccessorInterface $propertyAccess,
-        private Environment $twig,
         private HttpClientInterface $httpClient,
         private ParameterBagInterface $parameterBag,
     ) {

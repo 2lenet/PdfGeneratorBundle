@@ -193,7 +193,7 @@ class Signature
             );
 
             if ($this->image) {
-                $pdf->setSignatureAppearance($x ?? 0, $y ?? 0, $w ?? 0, $h ?? 0);
+                $pdf->setSignatureAppearance($x, $y, $w, $h);
             }
         }
 
