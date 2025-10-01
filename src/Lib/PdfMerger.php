@@ -20,6 +20,8 @@ class PdfMerger extends Base
             $pdf->useImportedPage($pdf->importPage($p));
         }
 
+        unlink($tmpFile);
+
         return $pdf;
     }
 }

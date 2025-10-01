@@ -71,17 +71,14 @@ class WordToPdfGenerator extends AbstractPdfGenerator
         $tmpFile = tempnam(sys_get_temp_dir(), 'tmp');
         $this->compile($params, $templateProcessor, $options);
         $templateProcessor->saveAs($tmpFile);
-        /*if ($options['twig'] ?? false) {
-            $process = new Process(['unoconvert ', '--convert-to', 'html', $tmpFile, $tmpFile . '.html']);
-            $process->run();
 
-            $template = $this->twig->createTemplate(\file_get_contents($tmpFile . '.html'));
-
-            file_put_contents($tmpFile . '.html.twig', $template->render($params));
-            $tmpFile = $tmpFile . '.html.twig';
-        }*/
-        $rep = $this->httpClient->request("POST", $this->parameterBag->get('lle.pdf.unoserver'), ['body' => file_get_contents($tmpFile)]);
-        file_put_contents($savePath, $rep->getContent());
+        $response = $this->httpClient->request(
+            'POST',
+            $this->parameterBag->get('lle.pdf.unoserver'),
+            ['body' => file_get_contents($tmpFile)]
+        );
+        file_put_contents($savePath, $response->getContent());
+        unlink($tmpFile);
     }
 
     public function getVariables(string $source): array
