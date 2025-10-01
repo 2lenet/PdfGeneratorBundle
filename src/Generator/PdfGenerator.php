@@ -157,7 +157,7 @@ class PdfGenerator
 
     private function getPdfToResponse(PDFMerger $pdf, ?array $signatures = []): BinaryFileResponse
     {
-        return new BinaryFileResponse($this->getPdfToPath($pdf, $signatures))->deleteFileAfterSend();
+        return (new BinaryFileResponse($this->getPdfToPath($pdf, $signatures)))->deleteFileAfterSend();
     }
 
     private function getPdfToPath(PDFMerger $pdf, ?array $signatures = []): string
