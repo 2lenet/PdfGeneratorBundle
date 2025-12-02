@@ -3,7 +3,6 @@
 namespace Lle\PdfGeneratorBundle\DependencyInjection;
 
 use Lle\PdfGeneratorBundle\Entity\PdfModel;
-use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
