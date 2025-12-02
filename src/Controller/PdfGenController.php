@@ -14,11 +14,10 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
-use Symfony\Component\Yaml\Yaml;
 
-#[Route("/admin/pdfgen")]
+#[Route('/admin/pdfgen')]
 class PdfGenController extends AbstractController
 {
     public function __construct(
@@ -27,10 +26,10 @@ class PdfGenController extends AbstractController
     ) {
     }
 
-    #[Route("/downloadModele", name: "lle_pdf_generator_download_model")]
+    #[Route('/downloadModele', name: 'lle_pdf_generator_download_model')]
     public function downloadModele(Request $request): Response
     {
-        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->attributes->get('id'));
 
         if ($model) {
             $response = new BinaryFileResponse($this->pdfGenerator->getPath() . $model->getPath());
@@ -41,10 +40,10 @@ class PdfGenController extends AbstractController
         }
     }
 
-    #[Route("/showModele", name: "lle_pdf_generator_show_model")]
+    #[Route('/showModele', name: 'lle_pdf_generator_show_model')]
     public function showModele(Request $request): Response
     {
-        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->attributes->get('id'));
 
         if ($model) {
             return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
@@ -53,14 +52,14 @@ class PdfGenController extends AbstractController
         }
     }
 
-    #[Route("/checkModele", name: "lle_pdf_generator_check_model")]
+    #[Route('/checkModele', name: 'lle_pdf_generator_check_model')]
     public function checkModele(Request $request): RedirectResponse
     {
         /** @var Session $session */
         $session = $request->getSession();
         $flashBag = $session->getFlashBag();
 
-        $model = $this->pdfGenerator->getRepository()->find($request->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->attributes->get('id'));
 
         if ($model) {
             $model->setCheckFile(true);
@@ -89,7 +88,7 @@ class PdfGenController extends AbstractController
         }
     }
 
-    #[Route("/balises", name: "lle_pdf_generator_admin_balise")]
+    #[Route('/balises', name: 'lle_pdf_generator_admin_balise')]
     public function balise(
         ParameterBagInterface $parameterBag,
     ): Response {
@@ -99,7 +98,7 @@ class PdfGenController extends AbstractController
         ]);
     }
 
-    #[Route("/balises/{module}", name: "lle_pdf_generator_admin_model_balise")]
+    #[Route('/balises/{module}', name: 'lle_pdf_generator_admin_model_balise')]
     public function getBalises(array $module): Response
     {
         $classes = [];
@@ -116,9 +115,10 @@ class PdfGenController extends AbstractController
                 foreach ($metaDataEntity->getReflectionClass()->getProperties() as $property) {
                     $annotationName = $annotationReader->getPropertyAnnotation(
                         $property,
-                        'Symfony\Component\Serializer\Annotation\Groups'
+                        'Symfony\Component\Serializer\Attribute\Groups'
                     );
 
+                    /** @phpstan-ignore-next-line */
                     if ($annotationName && in_array($module, $annotationName->getGroups())) {
                         $fields[] = $prefix . '.' . $nameConverter->normalize($property->name);
                     }
@@ -128,9 +128,10 @@ class PdfGenController extends AbstractController
                 foreach ($metaDataEntity->getReflectionClass()->getMethods() as $method) {
                     $annotationName = $annotationReader->getMethodAnnotation(
                         $method,
-                        'Symfony\Component\Serializer\Annotation\Groups'
+                        'Symfony\Component\Serializer\Attribute\Groups'
                     );
 
+                    /** @phpstan-ignore-next-line */
                     if ($annotationName && in_array($module, $annotationName->getGroups())) {
                         $fields[] = $prefix . '.' . $nameConverter->normalize(str_replace('get', '', $method->name));
                     }

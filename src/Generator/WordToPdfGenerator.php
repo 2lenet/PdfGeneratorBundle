@@ -7,15 +7,9 @@ use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use PhpOffice\PhpWord\Element\AbstractElement;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
-use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\HttpFoundation\ParameterBag;
-use Symfony\Component\Process\Exception\ProcessFailedException;
-use Symfony\Component\Process\Process;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 use Symfony\Component\PropertyAccess\PropertyPathInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Twig\Environment;
 
 class WordToPdfGenerator extends AbstractPdfGenerator
 {
