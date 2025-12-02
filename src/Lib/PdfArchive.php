@@ -140,7 +140,7 @@ class PdfArchive extends Fpdi
         $this->_put('<<');
         $this->_put('/F (' . $this->_escape($file_info['name']) . ')');
         $this->_put('/Type /Filespec');
-        $this->_put('/UF ' . $this->_textstring(utf8_encode($file_info['name'])));
+        $this->_put('/UF ' . $this->_textstring(mb_convert_encoding($file_info['name'], 'UTF-8', 'ISO-8859-1')));
 
         if ($file_info['relationship']) {
             $this->_put('/AFRelationship /' . $file_info['relationship']);
