@@ -7,7 +7,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.0",
+        "php": "^8.4",
         "laminas/laminas-escaper": "^2.11",
         "symfony/property-access": "^7.0 || ^8.0",
         "phpoffice/phpword": "^0.18",
