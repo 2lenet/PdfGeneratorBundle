@@ -115,9 +115,10 @@ class PdfGenController extends AbstractController
                 foreach ($metaDataEntity->getReflectionClass()->getProperties() as $property) {
                     $annotationName = $annotationReader->getPropertyAnnotation(
                         $property,
-                        'Symfony\Component\Serializer\Annotation\Groups'
+                        'Symfony\Component\Serializer\Attribute\Groups'
                     );
 
+                    /** @phpstan-ignore-next-line */
                     if ($annotationName && in_array($module, $annotationName->getGroups())) {
                         $fields[] = $prefix . '.' . $nameConverter->normalize($property->name);
                     }
@@ -127,9 +128,10 @@ class PdfGenController extends AbstractController
                 foreach ($metaDataEntity->getReflectionClass()->getMethods() as $method) {
                     $annotationName = $annotationReader->getMethodAnnotation(
                         $method,
-                        'Symfony\Component\Serializer\Annotation\Groups'
+                        'Symfony\Component\Serializer\Attribute\Groups'
                     );
 
+                    /** @phpstan-ignore-next-line */
                     if ($annotationName && in_array($module, $annotationName->getGroups())) {
                         $fields[] = $prefix . '.' . $nameConverter->normalize(str_replace('get', '', $method->name));
                     }
