@@ -29,7 +29,7 @@ class PdfGenController extends AbstractController
     #[Route('/downloadModele', name: 'lle_pdf_generator_download_model')]
     public function downloadModele(Request $request): Response
     {
-        $model = $this->pdfGenerator->getRepository()->find($request->attributes->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->query->get('id'));
 
         if ($model) {
             $response = new BinaryFileResponse($this->pdfGenerator->getPath() . $model->getPath());
@@ -43,7 +43,7 @@ class PdfGenController extends AbstractController
     #[Route('/showModele', name: 'lle_pdf_generator_show_model')]
     public function showModele(Request $request): Response
     {
-        $model = $this->pdfGenerator->getRepository()->find($request->attributes->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->query->get('id'));
 
         if ($model) {
             return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
@@ -59,7 +59,7 @@ class PdfGenController extends AbstractController
         $session = $request->getSession();
         $flashBag = $session->getFlashBag();
 
-        $model = $this->pdfGenerator->getRepository()->find($request->attributes->get('id'));
+        $model = $this->pdfGenerator->getRepository()->find($request->query->get('id'));
 
         if ($model) {
             $model->setCheckFile(true);
