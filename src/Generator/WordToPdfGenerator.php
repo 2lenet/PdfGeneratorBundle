@@ -5,6 +5,7 @@ namespace Lle\PdfGeneratorBundle\Generator;
 use Lle\PdfGeneratorBundle\Lib\PdfIterable;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use PhpOffice\PhpWord\Element\AbstractElement;
+use PhpOffice\PhpWord\Settings;
 use PhpOffice\PhpWord\TemplateProcessor;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
@@ -174,7 +175,11 @@ class WordToPdfGenerator extends AbstractPdfGenerator
             if ($value instanceof AbstractElement) {
                 $templateProcessor->setComplexBlock($variable, $value);
             } else {
-                $value1 = str_replace("\n", '</w:t><w:br/><w:t>', htmlspecialchars($value));
+                if (Settings::isOutputEscapingEnabled()) {
+                    $value1 = str_replace("\n", '</w:t><w:br/><w:t>', $value);
+                } else {
+                    $value1 = str_replace("\n", '</w:t><w:br/><w:t>', htmlspecialchars($value));
+                }
                 $templateProcessor->setValue($variable, $value1);
             }
         }
