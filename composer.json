@@ -20,7 +20,6 @@
         "doctrine/orm": "^2.6 || ^3.0",
         "symfony/routing": "^7.0 || ^8.0",
         "symfony/framework-bundle": "^7.0 || ^8.0",
-        "doctrine/annotations": "^1.13",
         "symfony/serializer": "^7.0 || ^8.0",
         "twig/twig": "^3.4.3",
         "setasign/fpdi": "^2.3.6",
