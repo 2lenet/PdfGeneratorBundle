@@ -3,7 +3,7 @@
 namespace Lle\PdfGeneratorBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
+use Vich\UploaderBundle\Mapping\Attribute as Vich;
 
 #[ORM\Table(name: "lle_pdf_model", indexes: [new ORM\Index(columns: ["code"], name: "idx_code")])]
 #[ORM\Entity]
