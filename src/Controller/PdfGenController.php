@@ -2,11 +2,9 @@
 
 namespace Lle\PdfGeneratorBundle\Controller;
 
-use Doctrine\Common\Annotations\AnnotationReader;
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +13,6 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\Serializer\NameConverter\CamelCaseToSnakeCaseNameConverter;
 
 #[Route('/admin/pdfgen')]
 class PdfGenController extends AbstractController
@@ -86,75 +83,5 @@ class PdfGenController extends AbstractController
         } else {
             throw new NotFoundHttpException();
         }
-    }
-
-    #[Route('/balises', name: 'lle_pdf_generator_admin_balise')]
-    public function balise(
-        ParameterBagInterface $parameterBag,
-    ): Response {
-        $models = $parameterBag->get('lle.pdf.data_models');
-        return $this->render('@LlePdfGenerator/balise/index.html.twig', [
-            'models' => $models,
-        ]);
-    }
-
-    #[Route('/balises/{module}', name: 'lle_pdf_generator_admin_model_balise')]
-    public function getBalises(array $module): Response
-    {
-        $classes = [];
-
-        $annotationReader = new AnnotationReader();
-        $nameConverter = new CamelCaseToSnakeCaseNameConverter();
-
-        foreach ($this->em->getMetadataFactory()->getAllMetadata() as $metaDataEntity) {
-            if (!$metaDataEntity->getReflectionClass()->isAbstract() && strstr($metaDataEntity->getName(), 'App')) {
-                $fields = [];
-                $prefix = $nameConverter->normalize($metaDataEntity->getReflectionClass()->getShortName());
-
-                // Groupe PdfGenerator attribute
-                foreach ($metaDataEntity->getReflectionClass()->getProperties() as $property) {
-                    $annotationName = $annotationReader->getPropertyAnnotation(
-                        $property,
-                        'Symfony\Component\Serializer\Attribute\Groups'
-                    );
-
-                    /** @phpstan-ignore-next-line */
-                    if ($annotationName && in_array($module, $annotationName->getGroups())) {
-                        $fields[] = $prefix . '.' . $nameConverter->normalize($property->name);
-                    }
-                }
-
-                // Groupe PdfGenerator getter
-                foreach ($metaDataEntity->getReflectionClass()->getMethods() as $method) {
-                    $annotationName = $annotationReader->getMethodAnnotation(
-                        $method,
-                        'Symfony\Component\Serializer\Attribute\Groups'
-                    );
-
-                    /** @phpstan-ignore-next-line */
-                    if ($annotationName && in_array($module, $annotationName->getGroups())) {
-                        $fields[] = $prefix . '.' . $nameConverter->normalize(str_replace('get', '', $method->name));
-                    }
-                }
-
-                if ($fields) {
-                    $classes[$metaDataEntity->getName()] = $fields;
-                }
-            }
-        }
-
-        $balises = [];
-        foreach ($classes as $key => $values) {
-            foreach ($values as $k => $v) {
-                $caption = 'field.' . $v;
-
-                $balises[] = [$v => $caption];
-            }
-        }
-
-        return $this->render('@LlePdfGenerator/balise/balises.html.twig', [
-            'balisesArray' => $balises,
-            'module' => $module,
-        ]);
     }
 }

@@ -16,3 +16,6 @@ parameters:
             identifier: missingType.iterableValue
         -
             identifier: missingType.generics
+        -
+            identifier: class.nameCase
+            path: ../src/Generator/PdfGenerator.php

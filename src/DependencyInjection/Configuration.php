@@ -20,7 +20,6 @@ class Configuration implements ConfigurationInterface
     {
         $treeBuilder = new TreeBuilder('lle_pdf_generator');
         $rootNode = $treeBuilder->getRootNode();
-        /** @phpstan-ignore-next-line */
         $rootNode
             ->children()
                 ->scalarNode('default_generator')

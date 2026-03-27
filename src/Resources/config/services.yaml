@@ -16,7 +16,7 @@ services:
         tags: ['lle.pdf.generator']
 
     Lle\PdfGeneratorBundle\Generator\PdfGenerator:
-        arguments: ["@doctrine.orm.default_entity_manager",  '@kernel','@parameter_bag', !tagged lle.pdf.generator]
+        arguments: ["@doctrine.orm.default_entity_manager",  '@kernel','@parameter_bag', !tagged_iterator lle.pdf.generator]
 
     Lle\PdfGeneratorBundle\Converter\PdfToPdfArchiveConverter: ~
 
