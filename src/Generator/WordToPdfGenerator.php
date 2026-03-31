@@ -176,11 +176,16 @@ class WordToPdfGenerator extends AbstractPdfGenerator
                 $templateProcessor->setComplexBlock($variable, $value);
             } else {
                 if (Settings::isOutputEscapingEnabled()) {
-                    $value1 = str_replace("\n", '</w:t><w:br/><w:t>', $value);
+                    //Disabled to allow raw XML tags without double escpaing
+                    Settings::setOutputEscapingEnabled(false);
+                    $value1 = str_replace("\n", '</w:t><w:br/><w:t>', htmlspecialchars($value));
+                    $templateProcessor->setValue($variable, $value1);
+                    //Re-enable escaping so other values remain properly escaped
+                    Settings::setOutputEscapingEnabled(true);
                 } else {
                     $value1 = str_replace("\n", '</w:t><w:br/><w:t>', htmlspecialchars($value));
+                    $templateProcessor->setValue($variable, $value1);
                 }
-                $templateProcessor->setValue($variable, $value1);
             }
         }
     }
