@@ -247,7 +247,10 @@ class CruditReportGenerator extends AbstractPdfGenerator
 
         $fileName = $id . self::EXTENSION;
         $json = $this->encode($template);
-        if (file_put_contents(rtrim($dir, '/') . '/' . $fileName, $json) !== strlen($json)) {
+        $file = rtrim($dir, '/') . '/' . $fileName;
+        if (file_put_contents($file, $json) !== strlen($json)) {
+            @unlink($file);
+
             throw new \RuntimeException('Cannot write the template ' . $fileName . ' in ' . $dir);
         }
 

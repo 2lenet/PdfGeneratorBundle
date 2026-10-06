@@ -2,9 +2,10 @@
 
 namespace Lle\PdfGeneratorBundle\Controller;
 
+use Lle\PdfGeneratorBundle\Exception\ImportBackupException;
 use Lle\PdfGeneratorBundle\Security\PdfModelRoles;
-use Psr\Log\LoggerInterface;
 use Lle\PdfGeneratorBundle\Transfer\ModelTransfer;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -83,9 +84,12 @@ class ModelTransferController extends AbstractController
             } catch (\InvalidArgumentException $e) {
                 $this->addFlash('danger', $this->trans('flash.pdfmodel_import_error', ['%error%' => $e->getMessage()]));
             } catch (\Throwable $e) {
-                // database or files: nothing changed, unless the message names a backup folder to copy back by hand
+                // database or files: nothing changed, unless old files are kept in a backup folder to copy back by hand;
+                // the detail (SQL query…) is only logged
                 $this->logger?->error('PDF templates import failed: ' . $e->getMessage(), ['exception' => $e]);
-                $this->addFlash('danger', $this->trans('flash.pdfmodel_import_failed', ['%error%' => $e->getMessage()]));
+                $this->addFlash('danger', $e instanceof ImportBackupException
+                    ? $this->trans('flash.pdfmodel_import_backup', ['%files%' => implode(', ', $e->lost), '%backup%' => $e->backup])
+                    : $this->trans('flash.pdfmodel_import_failed'));
             }
         }
 

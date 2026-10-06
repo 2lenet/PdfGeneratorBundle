@@ -6,7 +6,6 @@ use Lle\PdfGeneratorBundle\DataModel\DataExtractor;
 use Lle\PdfGeneratorBundle\DataModel\DataModelRegistry;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;

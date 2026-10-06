@@ -68,5 +68,6 @@ flash:
     pdfmodel_import_no_file: "no archive uploaded"
     pdfmodel_import_done: "Templates import done: %models% template(s), %files% file(s)."
     pdfmodel_import_ignored: "Ignored columns (missing in this version): %columns%."
-    pdfmodel_import_failed: "Templates import failed: %error%"
+    pdfmodel_import_failed: "Templates import failed, nothing was changed. The detail is in the application log."
+    pdfmodel_import_backup: "Templates import failed. The old files %files% could not be put back: they are kept in %backup%, to copy back by hand. The detail is in the application log."
     pdfmodel_zip_missing: "Export and import of the templates unavailable: the zip PHP extension is not installed."

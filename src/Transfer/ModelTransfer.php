@@ -6,6 +6,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
+use Lle\PdfGeneratorBundle\Exception\ImportBackupException;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 
 /**
@@ -264,8 +265,9 @@ class ModelTransfer
                 }
                 // a path outside the templates folder would be served by the download of the template
                 if (strtolower((string)$column) === $pathColumn && is_string($value)) {
-                    foreach (explode(',', $value) as $path) {
-                        if (!PdfGenerator::isRelativePath(trim($path))) {
+                    foreach (PdfGenerator::paths($value) as $path) {
+                        // an empty path (template without file) only fails when generating
+                        if ($path !== '' && !PdfGenerator::isRelativePath($path)) {
                             throw new \InvalidArgumentException('Archive refused: path "' . $value . '" outside the templates folder, row ' . ($n + 1));
                         }
                     }
@@ -337,12 +339,7 @@ class ModelTransfer
             if ($lost) {
                 $keepBackup = true;
 
-                throw new \RuntimeException(sprintf(
-                    'PDF templates import failed (%s) and the old files %s could not be put back: they are kept in %s',
-                    $e->getMessage(),
-                    implode(', ', $lost),
-                    $backup,
-                ), 0, $e);
+                throw new ImportBackupException($lost, $backup, $e);
             }
 
             throw $e;
@@ -441,9 +438,9 @@ class ModelTransfer
         foreach ($rows as $row) {
             foreach ($row as $name => $value) {
                 if (strtolower((string)$name) === $column && is_string($value)) {
-                    foreach (explode(',', $value) as $path) {
-                        if ($this->safePath(trim($path))) {
-                            $paths[] = trim($path);
+                    foreach (PdfGenerator::paths($value) as $path) {
+                        if ($this->safePath($path)) {
+                            $paths[] = $path;
                         }
                     }
                 }

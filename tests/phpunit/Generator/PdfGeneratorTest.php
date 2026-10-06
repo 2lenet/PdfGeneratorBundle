@@ -2,10 +2,14 @@
 
 namespace Lle\PdfGeneratorBundle\Tests\Generator;
 
+use Doctrine\ORM\EntityManagerInterface;
+use Lle\PdfGeneratorBundle\Entity\PdfModel;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 use Lle\PdfGeneratorBundle\Generator\TcpdfGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\HttpKernel\KernelInterface;
 
 class PdfGeneratorTest extends TestCase
 {
@@ -44,5 +48,38 @@ class PdfGeneratorTest extends TestCase
         }
 
         $this->assertFalse(Fixtures\NotAPdf::$created);
+    }
+
+    /** Files separated by commas, trimmed like when importing. */
+    public function testPaths(): void
+    {
+        $this->assertSame(['a.docx', 'b.docx'], PdfGenerator::paths('a.docx, b.docx'));
+        $this->assertSame([''], PdfGenerator::paths(''));
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function refusedPaths(): iterable
+    {
+        yield 'no file' => ['', 'no template file'];
+        yield 'empty second file' => ['a.docx,', 'no template file'];
+        yield 'outside' => ['a.docx, ../x', 'path "../x" outside the templates folder'];
+    }
+
+    /**
+     * @dataProvider refusedPaths
+     */
+    #[DataProvider('refusedPaths')]
+    public function testGenerateByModelRefusesPath(string $path, string $message): void
+    {
+        $generator = new PdfGenerator(
+            $this->createMock(EntityManagerInterface::class),
+            $this->createMock(KernelInterface::class),
+            $this->createMock(ParameterBagInterface::class),
+            [],
+        );
+        $model = (new PdfModel())->setCode('BL')->setType('word_to_pdf')->setPath($path);
+
+        $this->expectExceptionMessage('PDF GENERATOR ERROR: BL: ' . $message);
+        $generator->generateByModel($model, []);
     }
 }

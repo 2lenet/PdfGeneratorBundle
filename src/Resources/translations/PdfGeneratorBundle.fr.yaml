@@ -68,5 +68,6 @@ flash:
     pdfmodel_import_no_file: "aucune archive envoyée"
     pdfmodel_import_done: "Import des modèles terminé : %models% modèle(s), %files% fichier(s)."
     pdfmodel_import_ignored: "Colonnes ignorées (absentes de cette version) : %columns%."
-    pdfmodel_import_failed: "Échec de l'import des modèles : %error%"
+    pdfmodel_import_failed: "Échec de l'import des modèles, rien n'a été modifié. Le détail est dans le journal de l'application."
+    pdfmodel_import_backup: "Échec de l'import des modèles. Les anciens fichiers %files% n'ont pas pu être remis en place : ils sont gardés dans %backup%, à recopier à la main. Le détail est dans le journal de l'application."
     pdfmodel_zip_missing: "Export et import des modèles indisponibles : l'extension PHP zip n'est pas installée."

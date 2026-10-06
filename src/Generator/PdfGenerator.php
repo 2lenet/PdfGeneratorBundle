@@ -55,14 +55,18 @@ class PdfGenerator
             $options[CruditReportGenerator::OPTION_DATASOURCE] = $model->getDatasource();
         }
 
-        foreach (explode(',', (string)$model->getPath()) as $ressource) {
+        $ressources = self::paths((string)$model->getPath());
+        foreach ($ressources as $ressource) {
+            if ($ressource === '') {
+                throw new \RuntimeException('PDF GENERATOR ERROR: ' . $model->getCode() . ': no template file');
+            }
             if (!self::isRelativePath($ressource)) {
                 throw new \RuntimeException('PDF GENERATOR ERROR: ' . $model->getCode() . ': path "' . $ressource . '" outside the templates folder');
             }
         }
 
         foreach ($parameters as $parameter) {
-            foreach (explode(',', $model->getPath()) as $k => $ressource) {
+            foreach ($ressources as $k => $ressource) {
                 // Instanciate the generator type from model type
                 $types = explode(',', $model->getType());
 
@@ -108,6 +112,16 @@ class PdfGenerator
         }
 
         return $this->generateByModel($model, $datas);
+    }
+
+    /**
+     * Files of a template, separated by commas ("a.docx, b.docx").
+     *
+     * @return list<string>
+     */
+    public static function paths(string $path): array
+    {
+        return array_map('trim', explode(',', $path));
     }
 
     /**
