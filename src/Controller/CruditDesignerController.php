@@ -26,6 +26,8 @@ use Symfony\Component\Routing\Attribute\Route;
  * A template that has a data source (PdfModel::datasource) receives on reading the current parameters of the
  * source and its sample as test data; on saving, its provided parameters are reset from the source (the designer
  * cannot change them).
+ * Concurrent saves: the template is read with an ETag (hash of its file) and saved with If-Match; a template saved
+ * elsewhere in the meantime gives a 412, so that a save never overwrites a newer version without warning.
  */
 #[Route('/pdfmodel')]
 class CruditDesignerController extends AbstractController
@@ -79,9 +81,11 @@ class CruditDesignerController extends AbstractController
         $this->denyAccessUnlessGranted(PdfModelRoles::DESIGNER);
         $model = $this->getModel($id);
         $file = $this->getTemplateFile($model);
-        $headers = ['Content-Type' => 'application/json', 'Cache-Control' => 'no-store'];
+        $content = (string)file_get_contents($file);
+        // version of the saved file, not of the response (completed with the data source)
+        $headers = ['Content-Type' => 'application/json', 'Cache-Control' => 'no-store', 'ETag' => self::etag($content)];
 
-        $template = json_decode((string)file_get_contents($file), false);
+        $template = json_decode($content, false);
         if (!$template instanceof \stdClass) {
             return new BinaryFileResponse($file, 200, $headers);
         }
@@ -104,13 +108,21 @@ class CruditDesignerController extends AbstractController
         return new Response($this->cruditReportGenerator->encode($template), 200, $headers);
     }
 
-    /** Saves the template sent by the designer, if valid (otherwise 422 with the diagnostics). */
+    /**
+     * Saves the template sent by the designer, if valid (otherwise 422 with the diagnostics). With If-Match, a template
+     * saved elsewhere since it was read gives a 412. The response carries the ETag of the saved template.
+     * Restricted to the designer (X-Requested-With header), like the upload.
+     */
     #[Route('/template/{id}', name: 'lle_pdf_generator_crudit_template_save', requirements: ['id' => '\d+'], methods: ['PUT'])]
     public function save(Request $request, int $id): JsonResponse
     {
         $this->denyAccessUnlessGranted(PdfModelRoles::DESIGNER);
         $model = $this->getModel($id);
         $file = $this->getTemplateFile($model);
+
+        if (!$request->isXmlHttpRequest()) {
+            return new JsonResponse(['error' => 'Request refused'], Response::HTTP_BAD_REQUEST);
+        }
 
         $json = $request->getContent();
         $template = json_decode($json, false);
@@ -131,20 +143,60 @@ class CruditDesignerController extends AbstractController
             return new JsonResponse($result, Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-        // atomic write: rendering never reads a half-written file
-        $tmp = $file . '.' . uniqid() . '.tmp';
-        if (file_put_contents($tmp, $json) !== strlen($json)) {
-            @unlink($tmp);
+        // the version check and the write are done under a lock: two saves of the same version cannot both pass
+        $lock = fopen($file, 'r') ?: throw new \RuntimeException('Cannot read the template ' . $model->getCode());
+        try {
+            flock($lock, LOCK_EX);
+            if (!self::matches($request->headers->get('If-Match'), (string)file_get_contents($file))) {
+                return new JsonResponse(
+                    ['error' => 'The template was modified in the application since it was opened'],
+                    Response::HTTP_PRECONDITION_FAILED,
+                );
+            }
 
-            throw new \RuntimeException('Cannot write the template ' . $model->getCode());
+            // atomic write: rendering never reads a half-written file
+            $tmp = $file . '.' . uniqid() . '.tmp';
+            if (file_put_contents($tmp, $json) !== strlen($json)) {
+                @unlink($tmp);
+
+                throw new \RuntimeException('Cannot write the template ' . $model->getCode());
+            }
+            chmod($tmp, fileperms($file) & 0o777);
+            rename($tmp, $file) ?: throw new \RuntimeException('Cannot write the template ' . $model->getCode());
+        } finally {
+            flock($lock, LOCK_UN);
+            fclose($lock);
         }
-        chmod($tmp, fileperms($file) & 0o777);
-        rename($tmp, $file) ?: throw new \RuntimeException('Cannot write the template ' . $model->getCode());
 
         $model->setUpdatedAt(new \DateTime());
         $this->em->flush();
 
-        return new JsonResponse($result);
+        return new JsonResponse($result, Response::HTTP_OK, ['ETag' => self::etag($json)]);
+    }
+
+    /** Version of a saved template (ETag): hash of its file. */
+    public static function etag(string $content): string
+    {
+        return '"' . substr(hash('sha256', $content), 0, 32) . '"';
+    }
+
+    /**
+     * Whether the If-Match header accepts the saved template: no header (no check), *, or one of its ETags.
+     * A weak prefix (W/) and the suffix added by a compressing proxy (Apache mod_deflate: "…-gzip") are ignored.
+     */
+    public static function matches(?string $ifMatch, string $content): bool
+    {
+        if ($ifMatch === null || trim($ifMatch) === '*') {
+            return true;
+        }
+        $current = self::etag($content);
+        foreach (explode(',', $ifMatch) as $tag) {
+            if (preg_replace('#^W/|-(gzip|br|deflate|zstd)(?="$)#', '', trim($tag)) === $current) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /** Images and fonts of the templates folder (assets ref of the template). */
