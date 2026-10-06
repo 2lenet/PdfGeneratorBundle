@@ -3,12 +3,14 @@
 namespace Lle\PdfGeneratorBundle\Controller;
 
 use Lle\PdfGeneratorBundle\Security\PdfModelRoles;
+use Psr\Log\LoggerInterface;
 use Lle\PdfGeneratorBundle\Transfer\ModelTransfer;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Contracts\Translation\TranslatorInterface;
@@ -25,13 +27,19 @@ class ModelTransferController extends AbstractController
     public function __construct(
         protected ModelTransfer $transfer,
         protected ?TranslatorInterface $translator = null,
+        protected ?LoggerInterface $logger = null,
     ) {
     }
 
     #[Route('/archive', name: 'lle_pdf_generator_models_export', methods: ['GET'])]
-    public function export(Request $request): BinaryFileResponse
+    public function export(Request $request): Response
     {
         $this->denyAccessUnlessGranted(PdfModelRoles::EXPORT);
+        if (!ModelTransfer::isAvailable()) {
+            $this->addFlash('danger', $this->trans('flash.pdfmodel_zip_missing'));
+
+            return $this->redirect($this->back($request));
+        }
 
         $response = new BinaryFileResponse($this->transfer->export(), 200, ['Content-Type' => 'application/zip']);
         $response->deleteFileAfterSend();
@@ -50,11 +58,12 @@ class ModelTransferController extends AbstractController
     public function import(Request $request): RedirectResponse
     {
         $this->denyAccessUnlessGranted(PdfModelRoles::IMPORT);
-        $referer = (string)$request->headers->get('referer');
-        $back = parse_url($referer, PHP_URL_HOST) === $request->getHost() ? $referer : '/';
+        $back = $this->back($request);
 
         $file = $request->files->get('archive');
-        if (!$this->isCsrfTokenValid(self::CSRF_TOKEN_ID, (string)$request->request->get('_token'))) {
+        if (!ModelTransfer::isAvailable()) {
+            $this->addFlash('danger', $this->trans('flash.pdfmodel_zip_missing'));
+        } elseif (!$this->isCsrfTokenValid(self::CSRF_TOKEN_ID, (string)$request->request->get('_token'))) {
             $this->addFlash('danger', $this->trans('flash.pdfmodel_import_csrf'));
         } elseif (!$file instanceof UploadedFile || !$file->isValid()) {
             $this->addFlash('danger', $this->trans('flash.pdfmodel_import_error', [
@@ -73,10 +82,22 @@ class ModelTransferController extends AbstractController
                 $this->addFlash('success', $message);
             } catch (\InvalidArgumentException $e) {
                 $this->addFlash('danger', $this->trans('flash.pdfmodel_import_error', ['%error%' => $e->getMessage()]));
+            } catch (\Throwable $e) {
+                // database or files: nothing changed, unless the message names a backup folder to copy back by hand
+                $this->logger?->error('PDF templates import failed: ' . $e->getMessage(), ['exception' => $e]);
+                $this->addFlash('danger', $this->trans('flash.pdfmodel_import_failed', ['%error%' => $e->getMessage()]));
             }
         }
 
         return $this->redirect($back);
+    }
+
+    /** Previous page, if it is on this site. */
+    private function back(Request $request): string
+    {
+        $referer = (string)$request->headers->get('referer');
+
+        return parse_url($referer, PHP_URL_HOST) === $request->getHost() ? $referer : '/';
     }
 
     /** @param array<string, string|int> $parameters */

@@ -44,9 +44,16 @@ class ModelTransfer
     ) {
     }
 
+    /** The zip PHP extension is suggested by the bundle, not required: without it, no export nor import. */
+    public static function isAvailable(): bool
+    {
+        return class_exists(\ZipArchive::class);
+    }
+
     /** Creates the archive in a temporary file and returns its path (to delete once sent). */
     public function export(): string
     {
+        $this->checkAvailable();
         $conn = $this->em->getConnection();
         [$table, $id] = $this->table();
         $rows = $conn->fetchAllAssociative(
@@ -89,6 +96,7 @@ class ModelTransfer
      */
     public function import(string $archive): array
     {
+        $this->checkAvailable();
         $zip = new \ZipArchive();
         if ($zip->open($archive, \ZipArchive::RDONLY) !== true) {
             throw new \InvalidArgumentException('Unreadable zip archive');
@@ -240,6 +248,7 @@ class ModelTransfer
             // @phpstan-ignore method.deprecated
             : array_keys($schema->listTableColumns($table));
         $known = array_map('strtolower', $columns);
+        $pathColumn = strtolower($this->pathColumn());
         $ignored = [];
 
         foreach ($data['rows'] as $n => $row) {
@@ -252,6 +261,14 @@ class ModelTransfer
                 }
                 if (!is_scalar($value) && $value !== null) {
                     throw new \InvalidArgumentException('Archive refused: unreadable value for "' . $column . '", row ' . ($n + 1));
+                }
+                // a path outside the templates folder would be served by the download of the template
+                if (strtolower((string)$column) === $pathColumn && is_string($value)) {
+                    foreach (explode(',', $value) as $path) {
+                        if (!PdfGenerator::isRelativePath(trim($path))) {
+                            throw new \InvalidArgumentException('Archive refused: path "' . $value . '" outside the templates folder, row ' . ($n + 1));
+                        }
+                    }
                 }
             }
         }
@@ -375,6 +392,13 @@ class ModelTransfer
         }
 
         return $sql;
+    }
+
+    private function checkAvailable(): void
+    {
+        if (!self::isAvailable()) {
+            throw new \LogicException('The zip PHP extension is required to export or import the PDF templates');
+        }
     }
 
     /** Quoted table or column name (Connection::quoteIdentifier() is deprecated since DBAL 4.3). */

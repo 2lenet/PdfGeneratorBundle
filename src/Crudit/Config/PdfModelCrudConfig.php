@@ -14,6 +14,7 @@ use Lle\PdfGeneratorBundle\Form\Crudit\PdfModelType;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
 use Lle\PdfGeneratorBundle\Security\PdfModelRoles;
+use Lle\PdfGeneratorBundle\Transfer\ModelTransfer;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 
 /**
@@ -70,6 +71,9 @@ class PdfModelCrudConfig extends AbstractCrudConfig
         $actions = parent::getListActions();
 
         unset($actions[CrudConfigInterface::ACTION_EXPORT]);
+        if (!ModelTransfer::isAvailable()) {
+            return $actions; // zip PHP extension missing
+        }
 
         // copy of all the templates from one platform to another (table and templates folder)
         $actions[] = ListAction::new(

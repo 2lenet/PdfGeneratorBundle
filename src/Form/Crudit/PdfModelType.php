@@ -13,6 +13,7 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 /** Form of the PDF templates admin screen. */
@@ -31,14 +32,15 @@ class PdfModelType extends AbstractType
 
         $builder->add('libelle', null, ['label' => 'field.libelle']);
         $builder->add('code', null, ['label' => 'field.code']);
-        // empty: default type (lle_pdf_generator.default_generator), the existing templates do not change
-        $builder->add('type', ChoiceType::class, [
-            'label' => 'field.type',
-            'choices' => array_combine($types, $types),
-            'choice_translation_domain' => false,
-            'required' => false,
-            'placeholder' => $this->pdfGenerator->getDefaultGenerator(),
-        ]);
+        $this->addTypeField($builder, $types, null);
+        // a template of several resources (type "word_to_pdf,tcpdf", one per file of the path) keeps its type: it is
+        // added to the choices, the screen does not create such templates (one file only)
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($types): void {
+            $model = $event->getData();
+            if ($model instanceof PdfModelInterface && $model->getType() && !in_array($model->getType(), $types, true)) {
+                $this->addTypeField($event->getForm(), $types, $model->getType());
+            }
+        });
         // crudit_report: data described by the PHP (read-only parameters in the designer, always up to date),
         // or empty: structure specific to the template, defined in the designer
         if (in_array(CruditReportGenerator::getName(), $types, true)) {
@@ -65,7 +67,7 @@ class PdfModelType extends AbstractType
 
             if (
                 $model instanceof PdfModelInterface
-                && $model->getType() === CruditReportGenerator::getName()
+                && ($model->getType() ?: $this->pdfGenerator->getDefaultGenerator()) === CruditReportGenerator::getName()
                 && !$model->getFile()
                 && !$model->getPath()
                 && $event->getForm()->isValid()
@@ -77,6 +79,29 @@ class PdfModelType extends AbstractType
                 $model->setUpdatedAt(new \DateTime());
             }
         });
+    }
+
+    /**
+     * Type of the template; empty: default type (lle_pdf_generator.default_generator), the existing templates do not
+     * change.
+     *
+     * @param FormBuilderInterface|FormInterface $form
+     * @param list<string> $types
+     */
+    private function addTypeField(FormBuilderInterface|FormInterface $form, array $types, ?string $current): void
+    {
+        $choices = array_combine($types, $types);
+        if ($current !== null) {
+            $choices[$current] = $current;
+        }
+
+        $form->add('type', ChoiceType::class, [
+            'label' => 'field.type',
+            'choices' => $choices,
+            'choice_translation_domain' => false,
+            'required' => false,
+            'placeholder' => $this->pdfGenerator->getDefaultGenerator(),
+        ]);
     }
 
     public function configureOptions(OptionsResolver $resolver): void

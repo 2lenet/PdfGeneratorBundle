@@ -241,6 +241,10 @@ class CruditReportGeneratorTest extends TestCase
             'pageCount' => 1,
         ], json_decode($json, true));
 
+        // a real data set whose values are empty is not "no data": never the sample (data of another document)
+        $generator->generate($this->dir . 'source.template.json', ['lines' => []], $out, [CruditReportGenerator::OPTION_DATASOURCE => 'invoice']);
+        $this->assertNull(json_decode(explode("---\n", (string)file_get_contents($out))[1], true)['invoice']);
+
         // without data: the sample of the data source
         $generator->generate($this->dir . 'source.template.json', [], $out, [CruditReportGenerator::OPTION_DATASOURCE => 'invoice']);
         $this->assertSame('EX-1', json_decode(explode("---\n", (string)file_get_contents($out))[1], true)['invoice']['number']);

@@ -112,7 +112,11 @@ class CruditReportGenerator extends AbstractPdfGenerator
     private function tempFile(string $content): string
     {
         $file = tempnam(sys_get_temp_dir(), 'crudit') ?: throw new \RuntimeException('Cannot create a temporary file');
-        file_put_contents($file, $content);
+        if (file_put_contents($file, $content) !== strlen($content)) {
+            unlink($file);
+
+            throw new \RuntimeException('Cannot write the temporary file ' . $file);
+        }
 
         return $file;
     }
@@ -168,16 +172,15 @@ class CruditReportGenerator extends AbstractPdfGenerator
     }
 
     /**
-     * No data: [] or [[]] ("Show the PDF" action of the admin).
+     * No data at all ("Show the PDF" action of the admin: []). A real data set whose values are all empty is not
+     * "no data": it must not be replaced by the sample, which holds the data of another document.
      *
      * @param iterable<mixed> $params
      */
     private function isEmpty(iterable $params): bool
     {
         foreach ($params as $value) {
-            if ($value !== null && $value !== []) {
-                return false;
-            }
+            return false;
         }
 
         return true;
@@ -243,7 +246,10 @@ class CruditReportGenerator extends AbstractPdfGenerator
         $template = $this->emptyTemplate('tpl_' . $id, $name !== '' ? mb_substr($name, 0, 200) : 'New template');
 
         $fileName = $id . self::EXTENSION;
-        file_put_contents(rtrim($dir, '/') . '/' . $fileName, $this->encode($template));
+        $json = $this->encode($template);
+        if (file_put_contents(rtrim($dir, '/') . '/' . $fileName, $json) !== strlen($json)) {
+            throw new \RuntimeException('Cannot write the template ' . $fileName . ' in ' . $dir);
+        }
 
         return $fileName;
     }

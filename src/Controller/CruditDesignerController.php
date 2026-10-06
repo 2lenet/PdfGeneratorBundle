@@ -133,9 +133,13 @@ class CruditDesignerController extends AbstractController
 
         // atomic write: rendering never reads a half-written file
         $tmp = $file . '.' . uniqid() . '.tmp';
-        file_put_contents($tmp, $json);
+        if (file_put_contents($tmp, $json) !== strlen($json)) {
+            @unlink($tmp);
+
+            throw new \RuntimeException('Cannot write the template ' . $model->getCode());
+        }
         chmod($tmp, fileperms($file) & 0o777);
-        rename($tmp, $file);
+        rename($tmp, $file) ?: throw new \RuntimeException('Cannot write the template ' . $model->getCode());
 
         $model->setUpdatedAt(new \DateTime());
         $this->em->flush();
@@ -157,6 +161,8 @@ class CruditDesignerController extends AbstractController
             !$root || !$file || !is_file($file)
             || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)
             || !isset(TemplateLibrary::EXTENSIONS[$extension])
+            // hidden elements (.import-…, .backup-… of the templates import) are not part of the library
+            || preg_match('#(^|/)\.#', str_replace(DIRECTORY_SEPARATOR, '/', substr($file, strlen($root) + 1)))
         ) {
             throw new NotFoundHttpException();
         }
@@ -256,7 +262,7 @@ class CruditDesignerController extends AbstractController
     {
         $file = $this->pdfGenerator->getPath() . $model->getPath();
 
-        if (!$model->getPath() || !is_file($file)) {
+        if (!$model->getPath() || !PdfGenerator::isRelativePath($model->getPath()) || !is_file($file)) {
             throw new NotFoundHttpException('File of the template ' . $model->getCode() . ' not found');
         }
 

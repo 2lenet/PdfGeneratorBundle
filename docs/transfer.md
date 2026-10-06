@@ -31,17 +31,29 @@ Before writing anything, the import checks the archive and refuses:
 - a missing or unknown `pdfmodel.json`;
 - a path with `..`, absolute, or with a hidden element;
 - a file that is neither named by a row of the archive nor in `assets/` or `fonts/`;
+- a row whose `path` leaves the templates folder (`..`, absolute path);
 - more than 10,000 files, or more than 512 MB once unzipped (bytes really extracted, not the sizes announced by the
   archive), or a `pdfmodel.json` bigger than 64 MB.
 
 The files are extracted to a hidden temporary folder inside the templates folder, then swapped with the old ones
 during the database transaction; on failure, the transaction is rolled back and the old files are put back. If some
 old files cannot be put back, they are kept in a hidden folder `.backup-…` of the templates folder, named by the
-error (`RuntimeException`, logged by Symfony): copy them back by hand.
+error: copy them back by hand. Such an error (database, files) is logged and shown in the message after the import.
 
-## Foreign keys
+## Database
+
+The import keeps the ids of the archive, without resetting the sequences: it targets MySQL / MariaDB
+(`AUTO_INCREMENT` follows the inserted ids). With PostgreSQL, reset the sequence of the table after an import
+(`SELECT setval(…)`), otherwise the next template created fails.
+
+### Foreign keys
 
 The import runs `DELETE FROM` on the templates table, then inserts the rows of the archive. If an entity of the
 project references the templates (foreign key to `lle_pdf_model`), the delete fails (the import is cancelled and
 nothing changes) or cascades to the referencing rows, depending on the `ON DELETE` of the key. Do not use the import
 in that case, or check the foreign keys first.
+
+## Requirements
+
+The `zip` PHP extension (suggested by the bundle). Without it, the export and import actions are hidden and their
+routes answer with an error message.

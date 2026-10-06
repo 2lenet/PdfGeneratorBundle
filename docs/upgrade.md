@@ -14,10 +14,6 @@ Generate it with `bin/console make:migration`. The `check_file` and `datamodel` 
 `PdfModelInterface` has two new methods, `getDatasource()` and `setDatasource()` (in `PdfModelTrait`): add them if
 your entity implements the interface without the trait.
 
-### Requirements
-
-The `zip` PHP extension is now required (export and import of the templates).
-
 ### Routes
 
 All the routes are now under `/pdfmodel/`, take the template id in the path and check a role. The route names do not
@@ -31,13 +27,17 @@ change; update the URLs written by hand:
 Removed: `lle_pdf_generator_check_model` (`/admin/pdfgen/checkModele`) and the tags page
 (`lle_pdf_generator_admin_balise`, templates `views/balise/`).
 
+A template path (`PdfModel::path`) must now stay in the templates folder: a resource with `..` or an absolute path is
+refused when generating (`RuntimeException`) and when downloading (404). A tcpdf template must name a subclass of
+`Lle\PdfGeneratorBundle\Lib\Pdf`, checked before the class is instantiated.
+
 `/pdfmodel/` must be behind the firewall that authenticates the users of the admin: with a firewall limited to
 `^/admin`, the user is not authenticated there and every route answers 403. Check `security.firewalls.*.pattern` and
 `access_control`, and `bin/console debug:router | grep pdfmodel` for a route of the project on the same paths.
 
 ### Configuration
 
-- `lle_pdf_generator.data_models` is removed: delete it from your configuration (Symfony refuses an unknown option).
+- `lle_pdf_generator.data_models` is deprecated and ignored: delete it from your configuration.
 - New options: `screens.enabled` and `crudit.*` (see [Configuration reference](configuration.md)). The
   `crudit_report` type is disabled by default: set `crudit.enabled: true` once crudit, Typst and the designer are
   installed.

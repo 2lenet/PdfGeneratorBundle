@@ -173,6 +173,7 @@ class ModelTransferTest extends TestCase
         yield 'unreadable value' => [['pdfmodel.json' => json_encode(['format' => 1, 'rows' => [['id' => 1, 'code' => ['x']]]])], 'unreadable value'];
         yield 'forbidden path' => [['pdfmodel.json' => $data, 'pdfmodel/../../evil.php' => 'x'], 'forbidden path'];
         yield 'hidden element' => [['pdfmodel.json' => $data, 'pdfmodel/.htaccess' => 'x'], 'forbidden path'];
+        yield 'path outside the folder' => [['pdfmodel.json' => json_encode(['format' => 1, 'rows' => [['id' => 1, 'code' => 'X', 'path' => 'x.docx,../../.env', 'libelle' => 'X']]])], 'outside the templates folder'];
         yield 'file of no template' => [['pdfmodel.json' => $data, 'pdfmodel/evil.php' => 'x'], 'not a file of a template'];
     }
 

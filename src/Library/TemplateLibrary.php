@@ -118,9 +118,13 @@ class TemplateLibrary
 
         // atomic write: a running render never reads a half-copied file
         $tmp = $path . '.' . uniqid() . '.tmp';
-        copy($file, $tmp);
+        if (!copy($file, $tmp) || filesize($tmp) !== filesize($file)) {
+            @unlink($tmp);
+
+            throw new \RuntimeException('Cannot write ' . $uri . ' in the library');
+        }
         chmod($tmp, 0o644);
-        rename($tmp, $path);
+        rename($tmp, $path) ?: throw new \RuntimeException('Cannot write ' . $uri . ' in the library');
 
         return $uri;
     }

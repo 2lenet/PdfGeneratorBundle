@@ -55,6 +55,12 @@ class PdfGenerator
             $options[CruditReportGenerator::OPTION_DATASOURCE] = $model->getDatasource();
         }
 
+        foreach (explode(',', (string)$model->getPath()) as $ressource) {
+            if (!self::isRelativePath($ressource)) {
+                throw new \RuntimeException('PDF GENERATOR ERROR: ' . $model->getCode() . ': path "' . $ressource . '" outside the templates folder');
+            }
+        }
+
         foreach ($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
                 // Instanciate the generator type from model type
@@ -102,6 +108,19 @@ class PdfGenerator
         }
 
         return $this->generateByModel($model, $datas);
+    }
+
+    /**
+     * A resource of a template (PdfModel::path) stays in the templates folder: relative, without "..". Also true for
+     * a tcpdf class name.
+     */
+    public static function isRelativePath(string $path): bool
+    {
+        if ($path === '' || str_contains($path, "\0") || preg_match('#^([/\\\\]|[a-z]:)#i', $path)) {
+            return false;
+        }
+
+        return !in_array('..', preg_split('#[/\\\\]#', $path) ?: [], true);
     }
 
     public function getCriteria(string $code): array

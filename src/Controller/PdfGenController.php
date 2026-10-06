@@ -24,8 +24,10 @@ class PdfGenController extends AbstractController
     {
         $this->denyAccessUnlessGranted(PdfModelRoles::SHOW);
         $model = $this->getModel($id);
-        $file = $this->pdfGenerator->getPath() . $model->getPath();
-        if (!$model->getPath() || !is_file($file)) {
+        // the file must stay in the templates folder (path imported from another platform…)
+        $root = realpath($this->pdfGenerator->getPath());
+        $file = realpath($this->pdfGenerator->getPath() . $model->getPath());
+        if (!$model->getPath() || !$root || !$file || !is_file($file) || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)) {
             throw $this->createNotFoundException('File of the template ' . $model->getCode() . ' not found');
         }
 
