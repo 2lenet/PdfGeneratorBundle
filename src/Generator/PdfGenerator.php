@@ -47,6 +47,10 @@ class PdfGenerator
         }
 
         $pdf = new PdfMerger();
+        $options = $this->options;
+        if ($model->getDatasource()) {
+            $options[CruditReportGenerator::OPTION_DATASOURCE] = $model->getDatasource();
+        }
 
         foreach ($parameters as $parameter) {
             foreach (explode(',', $model->getPath()) as $k => $ressource) {
@@ -55,6 +59,11 @@ class PdfGenerator
 
                 if (isset($this->generators[$types[$k] ?? $types[0]])) {
                     $generator = $this->generators[$types[$k] ?? $types[0]];
+                } elseif (($types[$k] ?? $types[0]) === CruditReportGenerator::getName()) {
+                    // not the default generator: it would fail on a .template.json with an unrelated error
+                    throw new \RuntimeException(
+                        'PDF GENERATOR ERROR: ' . $model->getCode() . ' is a crudit_report template, which is disabled (lle_pdf_generator.crudit.enabled)'
+                    );
                 } else {
                     /** @var PdfGeneratorInterface $generator */
                     $generator = $this->generators[$this->getDefaultgenerator()];
@@ -63,7 +72,7 @@ class PdfGenerator
                 $generator->setPdfPath($this->getPath());
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
                 $r = $generator->getRessource($ressource);
-                $generator->generate($r, $parameter, $tmpFile, $this->options);
+                $generator->generate($r, $parameter, $tmpFile, $options);
 
                 $pdf->addPDF($tmpFile, "all");
             }

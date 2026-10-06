@@ -1,0 +1,151 @@
+<?php
+
+namespace Lle\PdfGeneratorBundle\Crudit\Config;
+
+use Lle\CruditBundle\Contracts\CrudConfigInterface;
+use Lle\CruditBundle\Crud\AbstractCrudConfig;
+use Lle\CruditBundle\Dto\Action\ItemAction;
+use Lle\CruditBundle\Dto\Action\ListAction;
+use Lle\CruditBundle\Dto\Field\Field;
+use Lle\CruditBundle\Dto\Icon;
+use Lle\CruditBundle\Dto\Path;
+use Lle\PdfGeneratorBundle\Crudit\Datasource\PdfModelDatasource;
+use Lle\PdfGeneratorBundle\Form\Crudit\PdfModelType;
+use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
+use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
+use Lle\PdfGeneratorBundle\Security\PdfModelRoles;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
+/**
+ * Admin screen of the PDF templates. Its name (PDFMODEL) gives the roles ROLE_PDFMODEL_INDEX, _SHOW, _EDIT…: they
+ * are those of the screens the projects used to write themselves, so the rights already granted remain valid.
+ */
+class PdfModelCrudConfig extends AbstractCrudConfig
+{
+    public const NAME = 'PDFMODEL';
+
+    public const TRANSLATION_DOMAIN = 'PdfGeneratorBundle';
+
+    /** Route prefix; the list, to reference in the project menu, is ROOT_ROUTE . '_index'. */
+    public const ROOT_ROUTE = 'lle_pdfgenerator_crudit_pdfmodel';
+
+    public function __construct(
+        PdfModelDatasource $datasource,
+        #[Autowire(param: 'lle.pdf.crudit.enabled')]
+        private bool $cruditReport = false,
+    ) {
+        $this->datasource = $datasource;
+    }
+
+    public function getName(): string
+    {
+        return self::NAME;
+    }
+
+    /**
+     * @return Field[]
+     */
+    public function getFields(string $key): array
+    {
+        $id = Field::new('id', 'string');
+        $libelle = Field::new('libelle');
+        $code = Field::new('code');
+        $type = Field::new('type');
+        $description = Field::new('description');
+        $updatedAt = Field::new('updatedAt');
+
+        // data source: crudit_report templates only
+        $datasource = $this->cruditReport ? [Field::new('datasource')] : [];
+
+        return match ($key) {
+            CrudConfigInterface::INDEX => [$libelle, $code, $type, ...$datasource],
+            CrudConfigInterface::SHOW => [$id, $code, $libelle, $type, ...$datasource, $description, $updatedAt],
+            default => [],
+        };
+    }
+
+    /** @return ListAction[] */
+    public function getListActions(): array
+    {
+        $actions = parent::getListActions();
+
+        unset($actions[CrudConfigInterface::ACTION_EXPORT]);
+
+        // copy of all the templates from one platform to another (table and templates folder)
+        $actions[] = ListAction::new(
+            'action.pdfmodel_export',
+            Path::new('lle_pdf_generator_models_export'),
+            Icon::new('file-archive')
+        )
+            ->setRole(PdfModelRoles::EXPORT);
+
+        $actions[] = ListAction::new(
+            'action.pdfmodel_import',
+            Path::new('lle_pdf_generator_models_import'),
+            Icon::new('file-import')
+        )
+            ->setModal('@LlePdfGenerator/crudit/modal_import.html.twig')
+            ->setRole(PdfModelRoles::IMPORT);
+
+        return $actions;
+    }
+
+    /** @return ItemAction[] */
+    public function getItemActions(): array
+    {
+        $actions = parent::getItemActions();
+
+        // designer routes: loaded only when crudit_report is enabled
+        if ($this->cruditReport) {
+            $actions[] = ItemAction::new(
+                'action.pdfmodel_designer',
+                Path::new('lle_pdf_generator_crudit_edit'),
+                Icon::new('pencil-ruler')
+            )
+                ->setCssClass('btn btn-primary btn-sm')
+                ->setRole(PdfModelRoles::DESIGNER)
+                ->setDisplayIf(fn (PdfModelInterface $model): bool => $model->getType() === CruditReportGenerator::getName());
+        }
+
+        $actions[] = ItemAction::new(
+            'action.pdfmodel_download',
+            Path::new('lle_pdf_generator_download_model'),
+            Icon::new('file-download')
+        )
+            ->setCssClass('btn btn-primary btn-sm')
+            ->setRole(PdfModelRoles::SHOW);
+
+        $actions[] = ItemAction::new(
+            'action.pdfmodel_pdf',
+            Path::new('lle_pdf_generator_show_model'),
+            Icon::new('file-pdf')
+        )
+            ->setCssClass('btn btn-primary btn-sm')
+            ->setTarget('_blank')
+            ->setRole(PdfModelRoles::SHOW);
+
+        return $actions;
+    }
+
+    protected function getFormType(string $pageKey): ?string
+    {
+        return PdfModelType::class;
+    }
+
+    public function getTranslationDomain(): string
+    {
+        return self::TRANSLATION_DOMAIN;
+    }
+
+    /** @return list<array{0: string, 1: string}> */
+    public function getDefaultSort(): array
+    {
+        return [['id', 'DESC']];
+    }
+
+    /** Route prefix of PdfModelController (otherwise names generated by Symfony from the class). */
+    public function getRootRoute(): string
+    {
+        return self::ROOT_ROUTE;
+    }
+}

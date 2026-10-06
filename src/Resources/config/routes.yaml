@@ -1,3 +1,12 @@
 pdf_routes:
     resource: '../../Controller/PdfGenController.php'
     type: attribute
+
+model_transfer_routes:
+    resource: '../../Controller/ModelTransferController.php'
+    type: attribute
+
+# admin screen (only when crudit-bundle is installed) and Crudit Report designer (only when crudit.enabled)
+crudit_screen_routes:
+    resource: .
+    type: lle_pdf_generator_crudit
