@@ -1,0 +1,73 @@
+field:
+    id: "Id"
+    libelle: "Label"
+    code: "Code"
+    type: "Type"
+    datasource: "Data source"
+    description: "Description"
+    updatedat: "Updated at"
+    file: "Template file (.docx, .template.json)"
+
+crud:
+    title:
+        list:
+            pdfmodel: "PDF templates"
+        show:
+            pdfmodel: "PDF template %entity%"
+        edit:
+            pdfmodel: "Edit PDF template %entity%"
+        new:
+            pdfmodel: "New PDF template"
+
+action:
+    list: "Back"
+    add: "Add"
+    edit: "Edit"
+    delete: "Delete"
+    show: "Show"
+    export: "Export"
+    cancel: "Cancel"
+    pdfmodel_designer: "Edit in the designer"
+    pdfmodel_download: "Download the template"
+    pdfmodel_pdf: "Show the PDF"
+    pdfmodel_export: "Export the templates"
+    pdfmodel_import: "Import templates"
+
+message:
+    pdfmodel_import_title: "Import templates"
+    pdfmodel_import_warning: "All the templates and their files will be replaced by those of the archive."
+
+crudit:
+    action: "Actions"
+
+pagination:
+    first: "First"
+    previous: "Previous"
+    next: "Next"
+    last: "Last"
+    firstPage: "First page"
+    previousPage: "Previous page"
+    nextPage: "Next page"
+    lastPage: "Last page"
+    goToPage: "Go to page %nb%"
+    items: "Templates"
+    to: "to"
+    of: "of"
+    noItem: "No template found"
+    limit: "Templates per page"
+
+help:
+    datasource: "Crudit Report templates: data described by the application, read-only parameters in the designer. Empty: structure specific to the template."
+
+placeholder:
+    datasource: "None (structure specific to the template)"
+
+flash:
+    pdfmodel_import_csrf: "Templates import refused: invalid security token, reload the page."
+    pdfmodel_import_error: "Templates import: %error%"
+    pdfmodel_import_no_file: "no archive uploaded"
+    pdfmodel_import_done: "Templates import done: %models% template(s), %files% file(s)."
+    pdfmodel_import_ignored: "Ignored columns (missing in this version): %columns%."
+    pdfmodel_import_failed: "Templates import failed, nothing was changed. The detail is in the application log."
+    pdfmodel_import_backup: "Templates import failed. The old files %files% could not be put back: they are kept in %backup%, to copy back by hand. The detail is in the application log."
+    pdfmodel_zip_missing: "Export and import of the templates unavailable: the zip PHP extension is not installed."

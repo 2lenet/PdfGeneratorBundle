@@ -19,3 +19,7 @@ parameters:
         -
             identifier: class.nameCase
             path: ../src/Generator/PdfGenerator.php
+        # TCPDF is deprecated upstream (tecnickcom/tc-lib-pdf): migration to plan separately
+        -
+            message: '#TCPDF is deprecated#'
+            path: ../src

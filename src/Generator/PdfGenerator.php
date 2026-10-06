@@ -47,14 +47,36 @@ class PdfGenerator
         }
 
         $pdf = new PdfMerger();
+        $options = $this->options;
+        if ($model->getCode()) {
+            $options[CruditReportGenerator::OPTION_MODEL] = $model->getCode();
+        }
+        if ($model->getDatasource()) {
+            $options[CruditReportGenerator::OPTION_DATASOURCE] = $model->getDatasource();
+        }
+
+        $ressources = self::paths((string)$model->getPath());
+        foreach ($ressources as $ressource) {
+            if ($ressource === '') {
+                throw new \RuntimeException('PDF GENERATOR ERROR: ' . $model->getCode() . ': no template file');
+            }
+            if (!self::isRelativePath($ressource)) {
+                throw new \RuntimeException('PDF GENERATOR ERROR: ' . $model->getCode() . ': path "' . $ressource . '" outside the templates folder');
+            }
+        }
 
         foreach ($parameters as $parameter) {
-            foreach (explode(',', $model->getPath()) as $k => $ressource) {
+            foreach ($ressources as $k => $ressource) {
                 // Instanciate the generator type from model type
                 $types = explode(',', $model->getType());
 
                 if (isset($this->generators[$types[$k] ?? $types[0]])) {
                     $generator = $this->generators[$types[$k] ?? $types[0]];
+                } elseif (($types[$k] ?? $types[0]) === CruditReportGenerator::getName()) {
+                    // not the default generator: it would fail on a .template.json with an unrelated error
+                    throw new \RuntimeException(
+                        'PDF GENERATOR ERROR: ' . $model->getCode() . ' is a crudit_report template, which is disabled (lle_pdf_generator.crudit.enabled)'
+                    );
                 } else {
                     /** @var PdfGeneratorInterface $generator */
                     $generator = $this->generators[$this->getDefaultgenerator()];
@@ -63,7 +85,7 @@ class PdfGenerator
                 $generator->setPdfPath($this->getPath());
                 $tmpFile = tempnam(sys_get_temp_dir(), 'tmp') . '.pdf';
                 $r = $generator->getRessource($ressource);
-                $generator->generate($r, $parameter, $tmpFile, $this->options);
+                $generator->generate($r, $parameter, $tmpFile, $options);
 
                 $pdf->addPDF($tmpFile, "all");
             }
@@ -90,6 +112,29 @@ class PdfGenerator
         }
 
         return $this->generateByModel($model, $datas);
+    }
+
+    /**
+     * Files of a template, separated by commas ("a.docx, b.docx").
+     *
+     * @return list<string>
+     */
+    public static function paths(string $path): array
+    {
+        return array_map('trim', explode(',', $path));
+    }
+
+    /**
+     * A resource of a template (PdfModel::path) stays in the templates folder: relative, without "..". Also true for
+     * a tcpdf class name.
+     */
+    public static function isRelativePath(string $path): bool
+    {
+        if ($path === '' || str_contains($path, "\0") || preg_match('#^([/\\\\]|[a-z]:)#i', $path)) {
+            return false;
+        }
+
+        return !in_array('..', preg_split('#[/\\\\]#', $path) ?: [], true);
     }
 
     public function getCriteria(string $code): array

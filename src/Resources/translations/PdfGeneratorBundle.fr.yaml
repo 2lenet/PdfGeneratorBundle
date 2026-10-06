@@ -1,8 +1,73 @@
-title:
-    pdf_generator_balises_list: "Liste des balises de documents"
-
 field:
-    baliseName: "Balise"
-    baliseCaption: "Référence"
-    baliseExplanation: "Dans vos modèles de documents, remplacez les champs correspondants par les balises suivantes."
-    baliseHowTo: "Comment utiliser les balises ?"
+    id: "Identifiant"
+    libelle: "Libellé"
+    code: "Code"
+    type: "Type"
+    datasource: "Source des données"
+    description: "Description"
+    updatedat: "Modifié le"
+    file: "Fichier du modèle (.docx, .template.json)"
+
+crud:
+    title:
+        list:
+            pdfmodel: "Liste des modèles PDF"
+        show:
+            pdfmodel: "Modèle PDF %entity%"
+        edit:
+            pdfmodel: "Édition du modèle PDF %entity%"
+        new:
+            pdfmodel: "Nouveau modèle PDF"
+
+action:
+    list: "Retour"
+    add: "Ajouter"
+    edit: "Modifier"
+    delete: "Supprimer"
+    show: "Voir"
+    export: "Exporter"
+    cancel: "Annuler"
+    pdfmodel_designer: "Éditer dans le designer"
+    pdfmodel_download: "Télécharger le modèle"
+    pdfmodel_pdf: "Voir le PDF"
+    pdfmodel_export: "Exporter les modèles"
+    pdfmodel_import: "Importer des modèles"
+
+message:
+    pdfmodel_import_title: "Importer des modèles"
+    pdfmodel_import_warning: "Tous les modèles et leurs fichiers seront remplacés par ceux de l'archive."
+
+crudit:
+    action: "Actions"
+
+pagination:
+    first: "Première"
+    previous: "Précédente"
+    next: "Suivante"
+    last: "Dernière"
+    firstPage: "Première page"
+    previousPage: "Page précédente"
+    nextPage: "Page suivante"
+    lastPage: "Dernière page"
+    goToPage: "Aller à la page %nb%"
+    items: "Modèles"
+    to: "à"
+    of: "sur"
+    noItem: "Aucun modèle trouvé"
+    limit: "Nombre de modèles"
+
+help:
+    datasource: "Modèles Crudit Report : données décrites par l'application, paramètres en lecture seule dans le designer. Vide : structure propre au modèle."
+
+placeholder:
+    datasource: "Aucune (structure propre au modèle)"
+
+flash:
+    pdfmodel_import_csrf: "Import des modèles refusé : jeton de sécurité invalide, rechargez la page."
+    pdfmodel_import_error: "Import des modèles : %error%"
+    pdfmodel_import_no_file: "aucune archive envoyée"
+    pdfmodel_import_done: "Import des modèles terminé : %models% modèle(s), %files% fichier(s)."
+    pdfmodel_import_ignored: "Colonnes ignorées (absentes de cette version) : %columns%."
+    pdfmodel_import_failed: "Échec de l'import des modèles, rien n'a été modifié. Le détail est dans le journal de l'application."
+    pdfmodel_import_backup: "Échec de l'import des modèles. Les anciens fichiers %files% n'ont pas pu être remis en place : ils sont gardés dans %backup%, à recopier à la main. Le détail est dans le journal de l'application."
+    pdfmodel_zip_missing: "Export et import des modèles indisponibles : l'extension PHP zip n'est pas installée."
