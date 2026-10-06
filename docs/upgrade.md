@@ -14,6 +14,10 @@ Generate it with `bin/console make:migration`. The `check_file` and `datamodel` 
 `PdfModelInterface` has two new methods, `getDatasource()` and `setDatasource()` (in `PdfModelTrait`): add them if
 your entity implements the interface without the trait.
 
+### Requirements
+
+The `zip` PHP extension is now required (export and import of the templates).
+
 ### Routes
 
 All the routes are now under `/pdfmodel/`, take the template id in the path and check a role. The route names do not
@@ -26,6 +30,10 @@ change; update the URLs written by hand:
 
 Removed: `lle_pdf_generator_check_model` (`/admin/pdfgen/checkModele`) and the tags page
 (`lle_pdf_generator_admin_balise`, templates `views/balise/`).
+
+`/pdfmodel/` must be behind the firewall that authenticates the users of the admin: with a firewall limited to
+`^/admin`, the user is not authenticated there and every route answers 403. Check `security.firewalls.*.pattern` and
+`access_control`, and `bin/console debug:router | grep pdfmodel` for a route of the project on the same paths.
 
 ### Configuration
 

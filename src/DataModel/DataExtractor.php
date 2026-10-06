@@ -10,7 +10,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
  * property or getter) then converted according to its type. The result matches the parameters: Doctrine decimals
  * (strings) to numbers, dates to the day, image paths to data URIs. Computed parameters are skipped.
  */
-final class DataExtractor
+class DataExtractor
 {
     private const IMAGE_TYPES = [
         IMAGETYPE_PNG => 'image/png', IMAGETYPE_JPEG => 'image/jpeg', IMAGETYPE_GIF => 'image/gif',

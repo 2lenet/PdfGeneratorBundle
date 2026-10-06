@@ -8,6 +8,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.4",
+        "ext-zip": "*",
         "alexanderpavlov/pdfmerger": "^1.0",
         "doctrine/orm": "^2.6 || ^3.0",
         "laminas/laminas-escaper": "^2.11",
@@ -30,7 +31,6 @@
         "vich/uploader-bundle": "^1.19 || ^2.0"
     },
     "suggest": {
-        "ext-zip": "Export and import of the templates (zip archive)",
         "2lenet/crudit-bundle": "Admin screen of the PDF templates, added automatically",
         "phpstan/phpdoc-parser": "crudit_report data sources: item type of a list (@var list<Class>, iterable<Class>)"
     },

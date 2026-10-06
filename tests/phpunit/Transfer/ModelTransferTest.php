@@ -78,6 +78,8 @@ class ModelTransferTest extends TestCase
         file_put_contents($this->dir . '/source/f.template.json', '{}');
         file_put_contents($this->dir . '/source/assets/logo.png', 'png');
         file_put_contents($this->dir . '/source/.cache', 'hidden');
+        mkdir($this->dir . '/source/generated');
+        file_put_contents($this->dir . '/source/generated/invoice.pdf', 'not a template');
 
         $archive = $this->transfer('source')->export();
         $zip = new \ZipArchive();
@@ -94,11 +96,16 @@ class ModelTransferTest extends TestCase
         $this->assertMatchesRegularExpression('/^DELETE FROM .lle_pdf_model.;$/m', $sql);
         $this->assertStringContainsString("'Summer''s note'", $sql);
 
-        // the target has other templates and files: everything is replaced (except hidden files)
+        // the target has other templates: they are replaced with their files and the library; the files that are
+        // not of a template are kept
         $this->em->getConnection()->executeStatement('DELETE FROM lle_pdf_model');
         $this->insert(['id' => 1, 'code' => 'OTHER', 'path' => 'other.docx', 'libelle' => 'Other']);
         file_put_contents($this->dir . '/target/other.docx', 'other');
         file_put_contents($this->dir . '/target/.gitkeep', '');
+        mkdir($this->dir . '/target/assets');
+        file_put_contents($this->dir . '/target/assets/old.png', 'old');
+        mkdir($this->dir . '/target/generated');
+        file_put_contents($this->dir . '/target/generated/kept.pdf', 'kept');
 
         $this->assertSame(['models' => 2, 'files' => 3, 'ignored' => []], $this->transfer('target')->import($archive));
         unlink($archive);
@@ -110,7 +117,36 @@ class ModelTransferTest extends TestCase
         $this->assertFileDoesNotExist($this->dir . '/target/other.docx');
         $this->assertFileExists($this->dir . '/target/.gitkeep');
         $this->assertSame('png', file_get_contents($this->dir . '/target/assets/logo.png'));
-        $this->assertSame(['.gitkeep', 'assets', 'bl.docx', 'f.template.json'], array_values(array_diff(scandir($this->dir . '/target'), ['.', '..'])));
+        $this->assertFileDoesNotExist($this->dir . '/target/assets/old.png');
+        $this->assertSame('kept', file_get_contents($this->dir . '/target/generated/kept.pdf'));
+        $this->assertSame(['.gitkeep', 'assets', 'bl.docx', 'f.template.json', 'generated'], array_values(array_diff(scandir($this->dir . '/target'), ['.', '..'])));
+    }
+
+    /** A write that fails in the database leaves the rows and the files as they were. */
+    public function testFailedWriteChangesNothing(): void
+    {
+        $this->insert(['id' => 1, 'code' => 'KEPT', 'path' => 'kept.docx', 'libelle' => 'Kept']);
+        file_put_contents($this->dir . '/target/kept.docx', 'kept');
+
+        $archive = $this->dir . '/archive.zip';
+        $zip = new \ZipArchive();
+        $zip->open($archive, \ZipArchive::CREATE);
+        // path is NOT NULL: the second insert fails
+        $zip->addFromString('pdfmodel.json', (string)json_encode(['format' => 1, 'rows' => [
+            ['id' => 2, 'code' => 'NEW', 'path' => 'new.docx', 'libelle' => 'New'],
+            ['id' => 3, 'code' => 'BAD', 'path' => null, 'libelle' => 'Bad'],
+        ]]));
+        $zip->addFromString('pdfmodel/new.docx', 'new');
+        $zip->close();
+
+        try {
+            $this->transfer('target')->import($archive);
+            $this->fail('import succeeded');
+        } catch (\Exception) {
+        }
+
+        $this->assertSame('KEPT', $this->rows()[0]['code']);
+        $this->assertSame(['kept.docx'], array_values(array_diff(scandir($this->dir . '/target'), ['.', '..'])));
     }
 
     /** Archive of another version of the bundle: a column missing from the table is ignored, not refused. */
@@ -137,6 +173,7 @@ class ModelTransferTest extends TestCase
         yield 'unreadable value' => [['pdfmodel.json' => json_encode(['format' => 1, 'rows' => [['id' => 1, 'code' => ['x']]]])], 'unreadable value'];
         yield 'forbidden path' => [['pdfmodel.json' => $data, 'pdfmodel/../../evil.php' => 'x'], 'forbidden path'];
         yield 'hidden element' => [['pdfmodel.json' => $data, 'pdfmodel/.htaccess' => 'x'], 'forbidden path'];
+        yield 'file of no template' => [['pdfmodel.json' => $data, 'pdfmodel/evil.php' => 'x'], 'not a file of a template'];
     }
 
     /**

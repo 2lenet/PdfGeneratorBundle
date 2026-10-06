@@ -5,15 +5,17 @@ namespace Lle\PdfGeneratorBundle\Transfer;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
+use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 
 /**
  * Copies the PDF templates from one platform to another (local ↔ production): a zip archive holds the rows of the
- * templates table (pdfmodel.json, read on import, and pdfmodel.sql, to read or import by hand) and the templates
- * folder (pdfmodel/: .docx and .template.json files, images and fonts of the library).
+ * templates table (pdfmodel.json, read on import, and pdfmodel.sql, to read or import by hand) and the files of the
+ * templates (pdfmodel/: files named by the path column of the rows, images and fonts of the library in assets/ and
+ * fonts/). The other files of the templates folder are neither exported nor touched by the import.
  *
- * Import replaces everything: the table is emptied then filled with the rows of the archive (ids kept), and the
- * templates folder is replaced by the one of the archive. The .sql file is never executed.
+ * Import replaces all the templates: the table is emptied then filled with the rows of the archive (ids kept), the
+ * files of the old templates and the library are replaced by those of the archive. The .sql file is never executed.
  */
 class ModelTransfer
 {
@@ -25,14 +27,20 @@ class ModelTransfer
 
     public const FORMAT = 1;
 
-    /** Maximum uncompressed size of the archive, and maximum number of files. */
+    /** Folders of the template library, exported and replaced as a whole. */
+    public const LIBRARY_DIRS = ['assets', 'fonts'];
+
+    /** Maximum uncompressed size of the archive (bytes really extracted), and maximum number of files. */
     public const MAX_SIZE = 512 << 20;
 
     public const MAX_FILES = 10000;
 
+    /** Maximum size of pdfmodel.json, read in memory. */
+    public const MAX_DATA_SIZE = 64 << 20;
+
     public function __construct(
-        private EntityManagerInterface $em,
-        private PdfGenerator $pdfGenerator,
+        protected EntityManagerInterface $em,
+        protected PdfGenerator $pdfGenerator,
     ) {
     }
 
@@ -58,7 +66,7 @@ class ModelTransfer
         $zip->addFromString(self::SQL_FILE, $this->sql($conn, $table, $rows));
 
         $root = rtrim($this->pdfGenerator->getPath(), '/');
-        foreach ($this->files($root) as $relative) {
+        foreach ($this->files($root, $this->modelFiles($root, $rows)) as $relative) {
             $zip->addFile($root . '/' . $relative, self::FILES_DIR . $relative);
         }
 
@@ -70,7 +78,7 @@ class ModelTransfer
     }
 
     /**
-     * Imports an archive made by export(): replaces the rows of the table and the templates folder.
+     * Imports an archive made by export(): replaces the rows of the table, the files of the templates and the library.
      * Nothing is changed if the archive is refused or if writing fails.
      *
      * A column of the archive that the table does not have (archive of another version of the bundle) is ignored.
@@ -91,16 +99,13 @@ class ModelTransfer
             [$columns, $ignored] = $this->checkRows($data);
 
             $root = rtrim($this->pdfGenerator->getPath(), '/');
+            $this->checkEntries($entries, $this->modelPaths($data['rows']));
             $staging = $root . '/.import-' . bin2hex(random_bytes(6));
             mkdir($staging, 0o775, true);
             try {
+                $size = 0;
                 foreach ($entries as $index => $relative) {
-                    $target = $staging . '/' . $relative;
-                    if (!is_dir(dirname($target))) {
-                        mkdir(dirname($target), 0o775, true);
-                    }
-                    // content written to a regular file: a symbolic link of the archive is not recreated
-                    file_put_contents($target, (string)$zip->getFromIndex($index));
+                    $this->extract($zip, $index, $staging . '/' . $relative, $size);
                 }
 
                 $this->replace($root, $staging, $data['rows'], $columns);
@@ -137,7 +142,7 @@ class ModelTransfer
             }
 
             if ($name === self::DATA_FILE) {
-                $data = json_decode((string)$zip->getFromIndex($i), true);
+                $data = json_decode($this->readData($zip, $i), true);
             } elseif (str_starts_with($name, self::FILES_DIR) && !str_ends_with($name, '/')) {
                 $relative = substr($name, strlen(self::FILES_DIR));
                 if (!$this->safePath($relative)) {
@@ -152,6 +157,68 @@ class ModelTransfer
         }
 
         return [$data, $entries];
+    }
+
+    /** Content of pdfmodel.json, read from a stream to refuse a file bigger than announced. */
+    private function readData(\ZipArchive $zip, int $index): string
+    {
+        $stream = $zip->getStreamIndex($index) ?: throw new \InvalidArgumentException('Archive refused: unreadable ' . self::DATA_FILE);
+        try {
+            $content = (string)stream_get_contents($stream, self::MAX_DATA_SIZE + 1);
+        } finally {
+            fclose($stream);
+        }
+        if (strlen($content) > self::MAX_DATA_SIZE) {
+            throw new \InvalidArgumentException('Archive refused: ' . self::DATA_FILE . ' bigger than ' . (self::MAX_DATA_SIZE >> 20) . ' MB');
+        }
+
+        return $content;
+    }
+
+    /**
+     * Copies an entry of the archive to $target by chunks, counting the bytes really written: the sizes declared in
+     * the index of the archive may be false (zip bomb).
+     */
+    private function extract(\ZipArchive $zip, int $index, string $target, int &$size): void
+    {
+        if (!is_dir(dirname($target))) {
+            mkdir(dirname($target), 0o775, true);
+        }
+
+        $in = $zip->getStreamIndex($index) ?: throw new \InvalidArgumentException('Archive refused: unreadable entry ' . $index);
+        // content written to a regular file: a symbolic link of the archive is not recreated
+        $out = fopen($target, 'wb') ?: throw new \RuntimeException('Cannot write ' . $target);
+        try {
+            while (!feof($in)) {
+                $chunk = (string)fread($in, 1 << 20);
+                $size += strlen($chunk);
+                if ($size > self::MAX_SIZE) {
+                    throw new \InvalidArgumentException('Archive refused: more than ' . (self::MAX_SIZE >> 20) . ' MB once uncompressed');
+                }
+                fwrite($out, $chunk) === strlen($chunk) ?: throw new \RuntimeException('Cannot write ' . $target);
+            }
+        } finally {
+            fclose($in);
+            fclose($out);
+        }
+    }
+
+    /**
+     * Each file of the archive is a file of a template of the archive, or a file of the library.
+     *
+     * @param array<int, string> $entries
+     * @param list<string> $paths paths of the templates of the archive
+     */
+    private function checkEntries(array $entries, array $paths): void
+    {
+        $extension = CruditReportGenerator::EXTENSION;
+        foreach ($entries as $relative) {
+            $model = in_array($relative, $paths, true)
+                || (str_ends_with($relative, $extension) && in_array(substr($relative, 0, -strlen($extension)), $paths, true));
+            if (!$model && !$this->isLibraryFile($relative)) {
+                throw new \InvalidArgumentException('Archive refused: ' . self::FILES_DIR . $relative . ' is not a file of a template nor of the library');
+            }
+        }
     }
 
     /**
@@ -193,8 +260,10 @@ class ModelTransfer
     }
 
     /**
-     * Replaces the rows of the table (transaction) and the content of the templates folder. The old files are set
-     * aside, then deleted once the transaction is committed; on failure they are put back.
+     * Replaces the rows of the table (transaction) and the files of the templates: the files of the old templates, the
+     * library folders and the files of the target that the archive would overwrite are set aside, then deleted once
+     * the transaction is committed. On failure they are put back; those that cannot be put back are kept in the
+     * hidden backup folder, named by the exception.
      *
      * @param list<array<string, mixed>> $rows
      * @param list<string> $columns
@@ -203,10 +272,18 @@ class ModelTransfer
     {
         $conn = $this->em->getConnection();
         [$table] = $this->table();
+        $current = $conn->fetchAllAssociative('SELECT ' . $this->quoteName($this->pathColumn()) . ' FROM ' . $this->quoteName($table));
+        $incoming = $this->items($staging, $this->modelFiles($staging, $rows));
+        $old = array_values(array_unique([
+            ...$this->items($root, $this->modelFiles($root, $current)),
+            ...array_filter($incoming, fn (string $item): bool => file_exists($root . '/' . $item) || is_link($root . '/' . $item)),
+        ]));
+
         $backup = $root . '/.backup-' . bin2hex(random_bytes(6));
         mkdir($backup, 0o775);
         $moved = [];
         $added = [];
+        $keepBackup = false;
 
         $conn->beginTransaction();
         try {
@@ -222,13 +299,13 @@ class ModelTransfer
                 $conn->insert($this->quoteName($table), $values);
             }
 
-            foreach ($this->entries($root) as $name) {
-                rename($root . '/' . $name, $backup . '/' . $name) ?: throw new \RuntimeException('Cannot move ' . $name);
-                $moved[] = $name;
+            foreach ($old as $item) {
+                $this->move($root . '/' . $item, $backup . '/' . $item) ?: throw new \RuntimeException('Cannot move ' . $item);
+                $moved[] = $item;
             }
-            foreach ($this->entries($staging) as $name) {
-                rename($staging . '/' . $name, $root . '/' . $name) ?: throw new \RuntimeException('Cannot move ' . $name);
-                $added[] = $name;
+            foreach ($incoming as $item) {
+                $this->move($staging . '/' . $item, $root . '/' . $item) ?: throw new \RuntimeException('Cannot move ' . $item);
+                $added[] = $item;
             }
 
             $conn->commit();
@@ -236,18 +313,39 @@ class ModelTransfer
             if ($conn->isTransactionActive()) {
                 $conn->rollBack();
             }
-            foreach ($added as $name) {
-                $this->remove($root . '/' . $name);
+            foreach ($added as $item) {
+                $this->remove($root . '/' . $item);
             }
-            foreach ($moved as $name) {
-                rename($backup . '/' . $name, $root . '/' . $name);
+            $lost = array_values(array_filter($moved, fn (string $item): bool => !$this->move($backup . '/' . $item, $root . '/' . $item)));
+            if ($lost) {
+                $keepBackup = true;
+
+                throw new \RuntimeException(sprintf(
+                    'PDF templates import failed (%s) and the old files %s could not be put back: they are kept in %s',
+                    $e->getMessage(),
+                    implode(', ', $lost),
+                    $backup,
+                ), 0, $e);
             }
+
             throw $e;
         } finally {
-            $this->remove($backup);
+            if (!$keepBackup) {
+                $this->remove($backup);
+            }
         }
 
         $this->em->clear();
+    }
+
+    /** Moves a file or a folder, creating the parent folder of the target. */
+    private function move(string $from, string $to): bool
+    {
+        if (!is_dir(dirname($to)) && !@mkdir(dirname($to), 0o775, true)) {
+            return false;
+        }
+
+        return @rename($from, $to);
     }
 
     /**
@@ -295,6 +393,87 @@ class ModelTransfer
         return [$meta->getTableName(), $meta->getSingleIdentifierColumnName()];
     }
 
+    /** Column of the file path of a template (PdfModel::path). */
+    private function pathColumn(): string
+    {
+        /** @var class-string $class */
+        $class = $this->pdfGenerator->getRepository()->getClassName();
+        $meta = $this->em->getClassMetadata($class);
+
+        return $meta->hasField('path') ? $meta->getColumnName('path') : 'path';
+    }
+
+    /**
+     * Files named by the path column of the rows (several resources separated by commas, .template.json implied).
+     *
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<string>
+     */
+    private function modelPaths(array $rows): array
+    {
+        $column = strtolower($this->pathColumn());
+        $paths = [];
+        foreach ($rows as $row) {
+            foreach ($row as $name => $value) {
+                if (strtolower((string)$name) === $column && is_string($value)) {
+                    foreach (explode(',', $value) as $path) {
+                        if ($this->safePath(trim($path))) {
+                            $paths[] = trim($path);
+                        }
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($paths));
+    }
+
+    /**
+     * Existing files of the templates of $rows in $root.
+     *
+     * @param list<array<string, mixed>> $rows
+     *
+     * @return list<string>
+     */
+    private function modelFiles(string $root, array $rows): array
+    {
+        $files = [];
+        foreach ($this->modelPaths($rows) as $path) {
+            foreach ([$path, $path . CruditReportGenerator::EXTENSION] as $candidate) {
+                if (is_file($root . '/' . $candidate) && !is_link($root . '/' . $candidate)) {
+                    $files[] = $candidate;
+                }
+            }
+        }
+
+        return array_values(array_unique($files));
+    }
+
+    private function isLibraryFile(string $relative): bool
+    {
+        return in_array(explode('/', $relative)[0], self::LIBRARY_DIRS, true);
+    }
+
+    /**
+     * Elements to move as a whole: the files of the templates and the library folders that exist in $dir.
+     *
+     * @param list<string> $modelFiles
+     *
+     * @return list<string>
+     */
+    private function items(string $dir, array $modelFiles): array
+    {
+        $items = array_values(array_filter($modelFiles, fn (string $file): bool => !$this->isLibraryFile($file)));
+        foreach (self::LIBRARY_DIRS as $library) {
+            if (is_dir($dir . '/' . $library)) {
+                $items[] = $library;
+            }
+        }
+
+        return $items;
+    }
+
     /**
      * Exact name of the column (case of the table), or null if the table does not have it.
      *
@@ -328,39 +507,33 @@ class ModelTransfer
     }
 
     /**
-     * Files of the templates folder, relative to $root, without the hidden elements.
+     * Files to export, relative to $root: those of the templates and those of the library, without the hidden elements.
+     *
+     * @param list<string> $modelFiles
      *
      * @return list<string>
      */
-    private function files(string $root): array
+    private function files(string $root, array $modelFiles): array
     {
-        $files = [];
-        if (!is_dir($root)) {
-            return $files;
-        }
-
-        $iterator = new \RecursiveIteratorIterator(new \RecursiveCallbackFilterIterator(
-            new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS),
-            fn (\SplFileInfo $f): bool => !str_starts_with($f->getFilename(), '.')
-        ));
-        foreach ($iterator as $file) {
-            if ($file->isFile()) {
-                $files[] = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root) + 1));
+        $files = $modelFiles;
+        foreach (self::LIBRARY_DIRS as $library) {
+            if (!is_dir($root . '/' . $library) || is_link($root . '/' . $library)) {
+                continue;
+            }
+            $iterator = new \RecursiveIteratorIterator(new \RecursiveCallbackFilterIterator(
+                new \RecursiveDirectoryIterator($root . '/' . $library, \FilesystemIterator::SKIP_DOTS),
+                fn (\SplFileInfo $f): bool => !str_starts_with($f->getFilename(), '.')
+            ));
+            foreach ($iterator as $file) {
+                if ($file->isFile()) {
+                    $files[] = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root) + 1));
+                }
             }
         }
+        $files = array_values(array_unique($files));
         sort($files);
 
         return $files;
-    }
-
-    /**
-     * First-level elements of a folder, without the hidden elements.
-     *
-     * @return list<string>
-     */
-    private function entries(string $dir): array
-    {
-        return array_values(array_filter(scandir($dir) ?: [], fn (string $n): bool => !str_starts_with($n, '.')));
     }
 
     private function remove(string $path): void

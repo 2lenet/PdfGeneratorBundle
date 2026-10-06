@@ -74,4 +74,6 @@ Installation errors, also `RuntimeException`:
 | `getVariables($source)` | Paths declared by the template parameters (`lines[].label`) |
 | `validate($json)` | `crudit validate`: `['ok' => bool, 'errors' => [...], 'warnings' => [...]]` |
 | `createTemplate($dir, $name)` | Empty template; returns its file name |
-| `listLibraryFiles($dir)`, `storeLibraryFile(…)` | Library of images and fonts (used by the designer) |
+
+The library of images and fonts (used by the designer) is the `Lle\PdfGeneratorBundle\Library\TemplateLibrary`
+service: `list($dir)`, `store($dir, $file, $originalName, $overwrite)`.

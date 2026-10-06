@@ -29,6 +29,8 @@ services:
             $translator: '@?translator'
             $propertyInfo: '@?property_info'
 
+    Lle\PdfGeneratorBundle\Library\TemplateLibrary: ~
+
     Lle\PdfGeneratorBundle\Transfer\ModelTransfer: ~
 
     Lle\PdfGeneratorBundle\Routing\CruditRouteLoader:

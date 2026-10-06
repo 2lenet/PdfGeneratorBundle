@@ -7,6 +7,7 @@ use Lle\PdfGeneratorBundle\DataModel\DataModelBuilder;
 use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\InvoiceData;
 use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\Untyped;
 use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\UntypedList;
+use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\WithoutField;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
@@ -47,7 +48,7 @@ class DataModelTest extends TestCase
 
     public function testBadDataClasses(): void
     {
-        foreach ([Untyped::class => 'PHP type required', UntypedList::class => 'unknown item type'] as $class => $message) {
+        foreach ([Untyped::class => 'PHP type required', UntypedList::class => 'unknown item type', WithoutField::class => 'has no public property'] as $class => $message) {
             try {
                 $this->builder()->describe($class);
                 $this->fail($class . ' accepted');

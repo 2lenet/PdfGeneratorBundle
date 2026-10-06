@@ -23,6 +23,13 @@ lle_pdf_generator:
 
 Apache does not serve `/crudit-designer/` alone: the URL is `/crudit-designer/index.html`.
 
+`designer_url` may point to another origin (`https://designer.example/index.html`, or the Vite server during the
+development of the designer). The designer then calls the routes below cross-origin, with the session cookie: the
+application must answer CORS for the designer origin with credentials (`Access-Control-Allow-Origin: <origin>`,
+`Access-Control-Allow-Credentials: true`, methods `GET, PUT, POST`, header `X-Requested-With`, for example with
+NelmioCorsBundle), and the session cookie must be sent cross-site (`SameSite=None; Secure`). Serving the designer
+from the project (`public/`, the default) avoids all this.
+
 **Cache**: a browser must not keep an old designer after an update. The engine URL contains a hash of its content,
 and the redirection of the bundle adds the date of `index.html` (`&v=…`) when the designer is served by the project
 (`public/`). In production, also send `Cache-Control: no-cache` for `crudit-designer/index.html` and
@@ -35,7 +42,7 @@ gives a 404.
 
 | Route | |
 |---|---|
-| `lle_pdf_generator_crudit_edit` (GET `/pdfmodel/designer/{id}`) | Redirects to the designer on this template (`?back=`: return URL, default: referer) |
+| `lle_pdf_generator_crudit_edit` (GET `/pdfmodel/designer/{id}`) | Redirects to the designer on this template (`?back=`: return URL, default: referer; only a path or an http(s) URL of the application host, otherwise no return link) |
 | `lle_pdf_generator_crudit_template` (GET `/pdfmodel/template/{id}`) | Template JSON; with a [data source](data-sources.md), completed with its parameters and its sample |
 | `lle_pdf_generator_crudit_template_save` (PUT `/pdfmodel/template/{id}`) | Saves the JSON: 400 if unreadable, 422 with the diagnostics of `crudit validate` if invalid, atomic write otherwise. With a data source, the provided parameters are put back from the source |
 | `lle_pdf_generator_crudit_library` (GET `/pdfmodel/library/{path}`) | Image or font of the library (`lle_pdf_generator.path`); `../` and other extensions give a 404; an SVG opened directly runs no script (`Content-Security-Policy: sandbox`) |

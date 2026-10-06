@@ -23,8 +23,8 @@ class ModelTransferController extends AbstractController
     public const CSRF_TOKEN_ID = 'lle_pdf_generator_models_import';
 
     public function __construct(
-        private ModelTransfer $transfer,
-        private ?TranslatorInterface $translator = null,
+        protected ModelTransfer $transfer,
+        protected ?TranslatorInterface $translator = null,
     ) {
     }
 

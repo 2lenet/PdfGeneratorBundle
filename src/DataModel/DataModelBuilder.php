@@ -24,7 +24,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  * - other class: object described the same way as the data class (its typed public properties);
  * - array, iterable, Collection: list, whose item type comes from the PHPDoc (@var list<Class>).
  */
-final class DataModelBuilder
+class DataModelBuilder
 {
     public const TYPES = ['string', 'number', 'integer', 'boolean', 'date', 'datetime', 'image'];
 
@@ -43,12 +43,12 @@ final class DataModelBuilder
      * @param list<string> $groups
      */
     public function __construct(
-        private ClassMetadataFactoryInterface $serializerMetadata,
-        private ?ManagerRegistry $doctrine = null,
-        private ?TranslatorInterface $translator = null,
-        private ?PropertyInfoExtractorInterface $propertyInfo = null,
-        private array $groups = ['pdfgenerator'],
-        private int $maxDepth = 3,
+        protected ClassMetadataFactoryInterface $serializerMetadata,
+        protected ?ManagerRegistry $doctrine = null,
+        protected ?TranslatorInterface $translator = null,
+        protected ?PropertyInfoExtractorInterface $propertyInfo = null,
+        protected array $groups = ['pdfgenerator'],
+        protected int $maxDepth = 3,
     ) {
     }
 
@@ -59,7 +59,7 @@ final class DataModelBuilder
      *
      * @return list<array<string, mixed>>
      *
-     * @throws \InvalidArgumentException untyped property, unknown list type, invalid attribute, cycle
+     * @throws \InvalidArgumentException untyped property, unknown list type, invalid attribute, cycle, class without field
      */
     public function describe(string $dataClass): array
     {
@@ -153,13 +153,28 @@ final class DataModelBuilder
     private function classParameter(string $name, string $type, string $class, ?array $fields, ?string $label, array $stack): array
     {
         if ($fields !== null || $this->doctrineMetadata($class) || $this->groupFields($class)) {
-            return $this->parameter($name, $type, $label, $this->classFields($class, $fields, [...$stack, $class], 1));
+            $children = $this->classFields($class, $fields, [...$stack, $class], 1);
+            if ($children === []) {
+                throw new \InvalidArgumentException(sprintf(
+                    '%s: no field of %s to describe: give the Serializer group %s to its properties, or list them with #[CruditFields]',
+                    $name,
+                    $class,
+                    implode(' or ', $this->groups),
+                ));
+            }
+
+            return $this->parameter($name, $type, $label, $children);
         }
         if (in_array($class, $stack, true)) {
             throw new \InvalidArgumentException($name . ': the data class ' . $class . ' contains itself');
         }
 
-        return $this->parameter($name, $type, $label, $this->dataClassFields($class, [...$stack, $class]));
+        $children = $this->dataClassFields($class, [...$stack, $class]);
+        if ($children === []) {
+            throw new \InvalidArgumentException($name . ': the data class ' . $class . ' has no public property');
+        }
+
+        return $this->parameter($name, $type, $label, $children);
     }
 
     /**

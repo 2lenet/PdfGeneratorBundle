@@ -19,9 +19,9 @@ class CruditRouteLoader extends Loader
 
     public function __construct(
         #[Autowire(param: 'lle.pdf.screens.enabled')]
-        private bool $enabled,
+        protected bool $enabled,
         #[Autowire(param: 'lle.pdf.crudit.enabled')]
-        private bool $designer = false,
+        protected bool $designer = false,
     ) {
         parent::__construct();
     }

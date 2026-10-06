@@ -14,7 +14,8 @@ lle_pdf_generator:
     prefix: /
 ```
 
-All the routes are under `/pdfmodel/` and check a role (see [Admin screen](admin-screen.md#roles)).
+All the routes are under `/pdfmodel/` and check a role (see [Admin screen](admin-screen.md#roles)): `/pdfmodel/` must be
+covered by the firewall of the admin users.
 
 ## Database
 

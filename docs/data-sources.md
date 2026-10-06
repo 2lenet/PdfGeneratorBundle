@@ -129,6 +129,10 @@ For a template with a source, the generator:
    Serializer groups are not used;
 3. without data (`[[]]`, "Show the PDF"), renders the sample of the source.
 
+A template whose data source no longer exists (renamed or removed in the PHP) cannot be rendered:
+`PDF GENERATOR ERROR: the template BL uses the data source "bl", which does not exist…`. Choose another source in the
+templates screen.
+
 A field removed from the data class leaves the expressions that use it empty (warning W4 in the designer): reopen the
 templates of the source after such a change.
 
@@ -138,3 +142,7 @@ When the template is read, the bundle puts the parameters of the source and its 
 `designer.source`; the designer shows the parameters with a lock, read-only, and only offers "+ Computed parameter".
 A sample that cannot be produced (empty database…) does not prevent opening the template. When saving, the provided
 parameters are put back from the source, whatever the designer sends.
+
+**Personal data**: the sample is shown to every user who has `ROLE_PDFMODEL_DESIGNER` or `ROLE_PDFMODEL_SHOW`
+("Show the PDF"). Taken from the database (the last order…), it holds real customer data: give these roles
+accordingly, or build a sample with fictitious data.

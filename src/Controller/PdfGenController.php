@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Attribute\Route;
 class PdfGenController extends AbstractController
 {
     public function __construct(
-        private PdfGenerator $pdfGenerator,
+        protected PdfGenerator $pdfGenerator,
     ) {
     }
 
@@ -24,8 +24,12 @@ class PdfGenController extends AbstractController
     {
         $this->denyAccessUnlessGranted(PdfModelRoles::SHOW);
         $model = $this->getModel($id);
+        $file = $this->pdfGenerator->getPath() . $model->getPath();
+        if (!$model->getPath() || !is_file($file)) {
+            throw $this->createNotFoundException('File of the template ' . $model->getCode() . ' not found');
+        }
 
-        $response = $this->file($this->pdfGenerator->getPath() . $model->getPath());
+        $response = $this->file($file);
 
         return $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, (string)$model->getPath());
     }

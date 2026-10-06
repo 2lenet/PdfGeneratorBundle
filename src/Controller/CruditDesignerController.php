@@ -7,6 +7,7 @@ use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Exception\LibraryFileExistsException;
 use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
+use Lle\PdfGeneratorBundle\Library\TemplateLibrary;
 use Lle\PdfGeneratorBundle\Security\PdfModelRoles;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -30,14 +31,15 @@ use Symfony\Component\Routing\Attribute\Route;
 class CruditDesignerController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $em,
-        private PdfGenerator $pdfGenerator,
-        private CruditReportGenerator $cruditReportGenerator,
-        private ParameterBagInterface $parameterBag,
+        protected EntityManagerInterface $em,
+        protected PdfGenerator $pdfGenerator,
+        protected CruditReportGenerator $cruditReportGenerator,
+        protected TemplateLibrary $library,
+        protected ParameterBagInterface $parameterBag,
     ) {
     }
 
-    /** Opens the designer on the template; ?back=: return address (default: previous page). */
+    /** Opens the designer on the template; ?back=: return address of the same site (default: previous page). */
     #[Route('/designer/{id}', name: 'lle_pdf_generator_crudit_edit', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function edit(Request $request, int $id): RedirectResponse
     {
@@ -50,7 +52,7 @@ class CruditDesignerController extends AbstractController
             'template' => $this->generateUrl('lle_pdf_generator_crudit_template', ['id' => $id]),
             'library' => substr($library, 0, -1),
             'files' => $this->generateUrl('lle_pdf_generator_crudit_library_list'),
-            'back' => $request->query->get('back') ?? $request->headers->get('referer'),
+            'back' => $this->sameSite($request, $request->query->get('back') ?? $request->headers->get('referer')),
             'title' => $model->getLibelle(),
         ]);
 
@@ -154,7 +156,7 @@ class CruditDesignerController extends AbstractController
         if (
             !$root || !$file || !is_file($file)
             || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)
-            || !isset(CruditReportGenerator::LIBRARY_EXTENSIONS[$extension])
+            || !isset(TemplateLibrary::EXTENSIONS[$extension])
         ) {
             throw new NotFoundHttpException();
         }
@@ -175,7 +177,7 @@ class CruditDesignerController extends AbstractController
         $this->denyAccessUnlessGranted(PdfModelRoles::DESIGNER);
 
         return new JsonResponse(
-            ['files' => $this->cruditReportGenerator->listLibraryFiles($this->pdfGenerator->getPath())],
+            ['files' => $this->library->list($this->pdfGenerator->getPath())],
             Response::HTTP_OK,
             ['Cache-Control' => 'no-store'],
         );
@@ -203,7 +205,7 @@ class CruditDesignerController extends AbstractController
         }
 
         try {
-            $uri = $this->cruditReportGenerator->storeLibraryFile(
+            $uri = $this->library->store(
                 $this->pdfGenerator->getPath(),
                 $file->getPathname(),
                 $file->getClientOriginalName(),
@@ -216,6 +218,27 @@ class CruditDesignerController extends AbstractController
         }
 
         return new JsonResponse(['uri' => $uri], Response::HTTP_CREATED);
+    }
+
+    /**
+     * $url if it is a path or an http(s) URL of the application host, otherwise null: the designer shows it as a link,
+     * which must not lead to another site nor run a javascript: URL.
+     */
+    private function sameSite(Request $request, ?string $url): ?string
+    {
+        if ($url === null || $url === '' || preg_match('/[\x00-\x20\\\\]/', $url)) {
+            return null;
+        }
+        if (str_starts_with($url, '/')) {
+            return str_starts_with($url, '//') ? null : $url;
+        }
+
+        $parts = parse_url($url);
+
+        return is_array($parts)
+            && in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)
+            && strtolower($parts['host'] ?? '') === strtolower($request->getHost())
+            ? $url : null;
     }
 
     private function getModel(int $id): PdfModelInterface

@@ -20,7 +20,7 @@ class PdfModelDatasource extends AbstractDoctrineDatasource
         EntityManagerInterface $entityManager,
         FilterState $filterState,
         #[Autowire(param: 'lle.pdf.class')]
-        private string $modelClass,
+        protected string $modelClass,
     ) {
         parent::__construct($entityManager, $filterState);
     }

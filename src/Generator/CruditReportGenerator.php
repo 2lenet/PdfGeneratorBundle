@@ -3,7 +3,6 @@
 namespace Lle\PdfGeneratorBundle\Generator;
 
 use Lle\PdfGeneratorBundle\DataModel\DataModelRegistry;
-use Lle\PdfGeneratorBundle\Exception\LibraryFileExistsException;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 use Symfony\Component\Process\ExecutableFinder;
@@ -21,21 +20,16 @@ class CruditReportGenerator extends AbstractPdfGenerator
 
     public const EXTENSION = '.template.json';
 
-    /** Files of the template library (asset refs and fonts readable by Typst): extension → kind. */
-    public const LIBRARY_EXTENSIONS = [
-        'png' => 'image', 'jpg' => 'image', 'jpeg' => 'image', 'gif' => 'image', 'svg' => 'image', 'webp' => 'image',
-        'ttf' => 'font', 'otf' => 'font',
-    ];
-
-    public const LIBRARY_MAX_SIZE = 10 << 20;
-
     /** generate() option: data source of the template (PdfModel::datasource), passed by PdfGenerator. */
     public const OPTION_DATASOURCE = 'crudit_datasource';
 
+    /** generate() option: code of the template (PdfModel::code), passed by PdfGenerator for the error messages. */
+    public const OPTION_MODEL = 'crudit_model';
+
     public function __construct(
-        private NormalizerInterface $normalizer,
-        private ParameterBagInterface $parameterBag,
-        private DataModelRegistry $dataModels,
+        protected NormalizerInterface $normalizer,
+        protected ParameterBagInterface $parameterBag,
+        protected DataModelRegistry $dataModels,
     ) {
     }
 
@@ -48,69 +42,79 @@ class CruditReportGenerator extends AbstractPdfGenerator
     {
         $source = $this->resolveSource($source);
         $datasource = $options[self::OPTION_DATASOURCE] ?? null;
+        $name = (string)($options[self::OPTION_MODEL] ?? basename($source));
         $templateFile = null;
-
-        if (is_string($datasource) && $datasource !== '') {
-            // Data source: its current parameters replace the copy in the template (rendering always follows the
-            // PHP), and the data is extracted according to them; without data, the sample of the data source.
-            $template = $this->applyDataSource(
-                json_decode((string)file_get_contents($source), false, 512, JSON_THROW_ON_ERROR),
-                $datasource,
-            );
-            $templateFile = tempnam(sys_get_temp_dir(), 'crudit');
-            file_put_contents($templateFile, $this->encode($template));
-            $source = $templateFile;
-            $data = $this->isEmpty($params) ? $this->dataModels->getSample($datasource) : $this->dataModels->extract($datasource, $params);
-        } else {
-            $template = $this->readTemplate($source);
-            $data = $this->normalizer->normalize($params, 'json', [
-                'groups' => $options[self::OPTION_GROUPS] ?? ['pdfgenerator'],
-                DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::RFC3339,
-            ]);
-            $data = $this->fitDates($template['parameters'] ?? [], $data);
-        }
-
-        $this->checkInstallation();
-        $command = [
-            $this->parameterBag->get('lle.pdf.crudit.bin'),
-            'render',
-            '-json',
-            '-o', $savePath,
-            '-typst', $this->parameterBag->get('lle.pdf.crudit.typst'),
-            '-assets', $this->pdfPath,
-            '-allow', implode(',', $this->parameterBag->get('lle.pdf.crudit.allowed_hosts')),
-            $source,
-        ];
-
-        // Without data ("Show the PDF" preview of the admin), crudit renders the template with its testData.
         $dataFile = null;
-        if (!empty($data)) {
-            $dataFile = tempnam(sys_get_temp_dir(), 'crudit');
-            file_put_contents(
-                $dataFile,
-                json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-            );
-            $command[] = $dataFile;
-        }
 
         try {
+            if (is_string($datasource) && $datasource !== '') {
+                if (!$this->dataModels->has($datasource)) {
+                    throw new \RuntimeException(sprintf(
+                        'PDF GENERATOR ERROR: the template %s uses the data source "%s", which does not exist (renamed or removed?): choose another one in the templates screen',
+                        $name,
+                        $datasource,
+                    ));
+                }
+                // Data source: its current parameters replace the copy in the template (rendering always follows the
+                // PHP), and the data is extracted according to them; without data, the sample of the data source.
+                $template = $this->applyDataSource(
+                    json_decode((string)file_get_contents($source), false, 512, JSON_THROW_ON_ERROR),
+                    $datasource,
+                );
+                $data = $this->isEmpty($params) ? $this->dataModels->getSample($datasource) : $this->dataModels->extract($datasource, $params);
+                $templateFile = $this->tempFile($this->encode($template));
+            } else {
+                $template = $this->readTemplate($source);
+                $data = $this->normalizer->normalize($params, 'json', [
+                    'groups' => $options[self::OPTION_GROUPS] ?? ['pdfgenerator'],
+                    DateTimeNormalizer::FORMAT_KEY => \DateTimeInterface::RFC3339,
+                ]);
+                $data = $this->fitDates($template['parameters'] ?? [], $data);
+            }
+
+            $this->checkInstallation();
+            $command = [
+                $this->parameterBag->get('lle.pdf.crudit.bin'),
+                'render',
+                '-json',
+                '-o', $savePath,
+                '-typst', $this->parameterBag->get('lle.pdf.crudit.typst'),
+                '-assets', $this->pdfPath,
+                '-allow', implode(',', $this->parameterBag->get('lle.pdf.crudit.allowed_hosts')),
+                $templateFile ?? $source,
+            ];
+
+            // Without data ("Show the PDF" preview of the admin), crudit renders the template with its testData.
+            if (!empty($data)) {
+                $dataFile = $this->tempFile(json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+                $command[] = $dataFile;
+            }
+
             $process = new Process($command);
             $process->setTimeout($this->parameterBag->get('lle.pdf.crudit.timeout'));
             $process->run();
 
             if (!$process->isSuccessful()) {
                 throw new \RuntimeException(
-                    'PDF GENERATOR ERROR: crudit render ' . basename($source) . ': ' . $this->errorMessage($process)
+                    'PDF GENERATOR ERROR: crudit render ' . $name . ': ' . $this->errorMessage($process)
                 );
             }
         } finally {
-            if ($dataFile) {
-                unlink($dataFile);
-            }
-            if ($templateFile) {
-                unlink($templateFile);
+            foreach ([$dataFile, $templateFile] as $file) {
+                if ($file !== null) {
+                    unlink($file);
+                }
             }
         }
+    }
+
+    /** Temporary file holding $content (to delete by the caller). */
+    private function tempFile(string $content): string
+    {
+        $file = tempnam(sys_get_temp_dir(), 'crudit') ?: throw new \RuntimeException('Cannot create a temporary file');
+        file_put_contents($file, $content);
+
+        return $file;
     }
 
     /**
@@ -154,7 +158,8 @@ class CruditReportGenerator extends AbstractPdfGenerator
         return $this->dataModels->getSample($datasource);
     }
 
-    public function encode(\stdClass $template): string
+    /** @param \stdClass|array<string, mixed> $template */
+    public function encode(\stdClass|array $template): string
     {
         return json_encode(
             $template,
@@ -208,8 +213,7 @@ class CruditReportGenerator extends AbstractPdfGenerator
     public function validate(string $json): array
     {
         $this->checkInstallation();
-        $file = tempnam(sys_get_temp_dir(), 'crudit');
-        file_put_contents($file, $json);
+        $file = $this->tempFile($json);
 
         try {
             $process = new Process([$this->parameterBag->get('lle.pdf.crudit.bin'), 'validate', '-json', $file]);
@@ -239,10 +243,7 @@ class CruditReportGenerator extends AbstractPdfGenerator
         $template = $this->emptyTemplate('tpl_' . $id, $name !== '' ? mb_substr($name, 0, 200) : 'New template');
 
         $fileName = $id . self::EXTENSION;
-        file_put_contents(
-            rtrim($dir, '/') . '/' . $fileName,
-            json_encode($template, JSON_THROW_ON_ERROR | JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n"
-        );
+        file_put_contents(rtrim($dir, '/') . '/' . $fileName, $this->encode($template));
 
         return $fileName;
     }
@@ -271,136 +272,6 @@ class CruditReportGenerator extends AbstractPdfGenerator
             'bands' => ['content' => ['children' => []]],
             'elements' => new \stdClass(),
         ];
-    }
-
-    /**
-     * Files of the template library ($dir and its subfolders) usable in a template: images (with their
-     * dimensions, except SVG) and fonts, sorted by URI.
-     *
-     * @return list<array{uri: string, kind: string, size: int, modified: string, widthPx?: int, heightPx?: int}>
-     */
-    public function listLibraryFiles(string $dir): array
-    {
-        $root = realpath($dir);
-        if (!$root) {
-            return [];
-        }
-
-        $files = [];
-        $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($root, \FilesystemIterator::SKIP_DOTS)
-        );
-        /** @var \SplFileInfo $file */
-        foreach ($iterator as $file) {
-            $kind = self::LIBRARY_EXTENSIONS[strtolower($file->getExtension())] ?? null;
-            $uri = str_replace(DIRECTORY_SEPARATOR, '/', substr($file->getPathname(), strlen($root) + 1));
-            if ($kind === null || !$file->isFile() || preg_match('#(^|/)\.#', $uri)) {
-                continue;
-            }
-
-            $entry = [
-                'uri' => $uri,
-                'kind' => $kind,
-                'size' => (int)$file->getSize(),
-                'modified' => date(\DateTimeInterface::RFC3339, (int)$file->getMTime()),
-            ];
-            $info = $kind === 'image' ? @getimagesize($file->getPathname()) : false;
-            if (is_array($info) && $info[0] > 0) {
-                $entry['widthPx'] = $info[0];
-                $entry['heightPx'] = $info[1];
-            }
-            $files[] = $entry;
-        }
-        usort($files, fn (array $a, array $b): int => strcmp($a['uri'], $b['uri']));
-
-        return $files;
-    }
-
-    /**
-     * Adds a file to the template library ($dir): image in assets/, font in fonts/.
-     * The name is simplified; an identical file already there is reused. Returns the URI to use in the template
-     * (asset ref or font src).
-     *
-     * @throws \InvalidArgumentException file too big, extension refused or content that does not match
-     * @throws LibraryFileExistsException another file already has this name, and $overwrite is false
-     */
-    public function storeLibraryFile(string $dir, string $file, string $originalName, bool $overwrite = false): string
-    {
-        $extension = strtolower(pathinfo($originalName, PATHINFO_EXTENSION));
-        $kind = self::LIBRARY_EXTENSIONS[$extension] ?? null;
-
-        if ($kind === null) {
-            throw new \InvalidArgumentException(
-                $originalName . ': extension refused (' . implode(', ', array_keys(self::LIBRARY_EXTENSIONS)) . ')'
-            );
-        }
-        if (filesize($file) > self::LIBRARY_MAX_SIZE) {
-            throw new \InvalidArgumentException(
-                $originalName . ': file too big (' . (self::LIBRARY_MAX_SIZE >> 20) . ' MB max)'
-            );
-        }
-        if (!$this->matchesExtension($file, $extension)) {
-            throw new \InvalidArgumentException(
-                $originalName . ': the content does not match the extension ' . $extension
-            );
-        }
-
-        $base = pathinfo($originalName, PATHINFO_FILENAME);
-        // accents removed (é → e); without intl, non-ASCII characters become dashes
-        if (class_exists(\Normalizer::class)) {
-            $base = (string)preg_replace('/\p{Mn}+/u', '', (string)\Normalizer::normalize($base, \Normalizer::FORM_D));
-        }
-        $base = trim((string)preg_replace('/[^a-z0-9_-]+/', '-', strtolower($base)), '-') ?: 'file';
-        $base = substr($base, 0, 80);
-
-        $sub = $kind === 'font' ? 'fonts' : 'assets';
-        $target = rtrim($dir, '/') . '/' . $sub;
-        if (!is_dir($target)) {
-            mkdir($target, 0o775, true);
-        }
-
-        $uri = $sub . '/' . $base . '.' . $extension;
-        $path = $target . '/' . $base . '.' . $extension;
-
-        if (file_exists($path)) {
-            if (hash_file('sha256', $path) === hash_file('sha256', $file)) {
-                return $uri;
-            }
-            if (!$overwrite) {
-                throw new LibraryFileExistsException($uri);
-            }
-        }
-
-        // atomic write: a running render never reads a half-copied file
-        $tmp = $path . '.' . uniqid() . '.tmp';
-        copy($file, $tmp);
-        chmod($tmp, 0o644);
-        rename($tmp, $path);
-
-        return $uri;
-    }
-
-    /** The content must match the extension: readable image, or TrueType / OpenType font signature. */
-    private function matchesExtension(string $file, string $extension): bool
-    {
-        if ($extension === 'svg') {
-            return (bool)preg_match('/<svg[\s>]/i', (string)file_get_contents($file, false, null, 0, 1024));
-        }
-
-        if (self::LIBRARY_EXTENSIONS[$extension] === 'font') {
-            return in_array(file_get_contents($file, false, null, 0, 4), ["\x00\x01\x00\x00", 'OTTO', 'true'], true);
-        }
-
-        $types = [
-            'png' => IMAGETYPE_PNG,
-            'jpg' => IMAGETYPE_JPEG,
-            'jpeg' => IMAGETYPE_JPEG,
-            'gif' => IMAGETYPE_GIF,
-            'webp' => IMAGETYPE_WEBP,
-        ];
-        $info = @getimagesize($file);
-
-        return is_array($info) && $info[2] === $types[$extension];
     }
 
     private function resolveSource(string $source): string

@@ -4,7 +4,6 @@ namespace Lle\PdfGeneratorBundle\Tests\Generator;
 
 use Lle\PdfGeneratorBundle\DataModel\DataExtractor;
 use Lle\PdfGeneratorBundle\DataModel\DataModelRegistry;
-use Lle\PdfGeneratorBundle\Exception\LibraryFileExistsException;
 use Lle\PdfGeneratorBundle\Exception\ModelNotFoundException;
 use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -158,73 +157,39 @@ class CruditReportGeneratorTest extends TestCase
         $this->assertSame([], $this->generator()->getVariables($this->dir . $fileName));
     }
 
-    public function testStoreLibraryFile(): void
+    public function testUnknownDataSourceNamesTheTemplate(): void
     {
         $generator = $this->generator();
-        $png = $this->dir . 'upload';
-        // PNG 1×1 transparent
-        file_put_contents($png, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='));
 
-        $this->assertSame('assets/cafe-logo.png', $generator->storeLibraryFile($this->dir, $png, 'Café Logo.PNG'));
-        $this->assertFileEquals($png, $this->dir . 'assets/cafe-logo.png');
-        // same content: file reused; other content under the same name: refused, unless overwriting
-        $this->assertSame('assets/cafe-logo.png', $generator->storeLibraryFile($this->dir, $png, 'cafe-logo.png'));
-        $old = $this->dir . 'assets/cafe-logo.png';
-        file_put_contents($old, 'other', FILE_APPEND);
+        $this->expectExceptionMessage('the template BL uses the data source "removed", which does not exist');
+        $generator->generate($generator->getRessource('invoice'), [], $this->dir . 'out.pdf', [
+            CruditReportGenerator::OPTION_DATASOURCE => 'removed',
+            CruditReportGenerator::OPTION_MODEL => 'BL',
+        ]);
+    }
+
+    /** A failure before rendering (binary missing…) leaves no temporary file. */
+    public function testTemporaryFilesAreRemovedOnFailure(): void
+    {
+        $generator = $this->generator(typst: 'typst-not-installed', models: $this->invoiceModels());
+        file_put_contents($this->dir . 'source.template.json', '{"parameters":[]}');
+        $before = array_filter(glob(sys_get_temp_dir() . '/crudit*') ?: [], 'is_file');
+
         try {
-            $generator->storeLibraryFile($this->dir, $png, 'cafe-logo.png');
-            $this->fail('existing file overwritten without confirmation');
-        } catch (LibraryFileExistsException $e) {
-            $this->assertSame('assets/cafe-logo.png', $e->uri);
+            $generator->generate($this->dir . 'source.template.json', [], $this->dir . 'out.pdf', [
+                CruditReportGenerator::OPTION_DATASOURCE => 'invoice',
+            ]);
+            $this->fail('rendered without Typst');
+        } catch (\RuntimeException $e) {
+            $this->assertStringContainsString('Typst binary', $e->getMessage());
         }
-        $this->assertSame('assets/cafe-logo.png', $generator->storeLibraryFile($this->dir, $png, 'cafe-logo.png', true));
-        $this->assertFileEquals($png, $old);
 
-        $font = $this->dir . 'font';
-        file_put_contents($font, "\x00\x01\x00\x00" . str_repeat("\x00", 12));
-        $this->assertSame('fonts/inter-bold.ttf', $generator->storeLibraryFile($this->dir, $font, 'Inter-Bold.ttf'));
-
-        $svg = $this->dir . 'svg';
-        file_put_contents($svg, '<?xml version="1.0"?><svg xmlns="http://www.w3.org/2000/svg"></svg>');
-        $this->assertSame('assets/stamp.svg', $generator->storeLibraryFile($this->dir, $svg, 'stamp.svg'));
-
-        // templates, binary and uploaded files (without extension) are not part of the library
-        $files = $generator->listLibraryFiles($this->dir);
-        $this->assertSame(
-            ['assets/cafe-logo.png', 'assets/stamp.svg', 'fonts/inter-bold.ttf'],
-            array_column($files, 'uri'),
-        );
-        $this->assertSame(['image', 'image', 'font'], array_column($files, 'kind'));
-        $this->assertSame([1, 1], [$files[0]['widthPx'], $files[0]['heightPx']]);
-        $this->assertArrayNotHasKey('widthPx', $files[1]);
-        $this->assertSame([], $generator->listLibraryFiles($this->dir . 'absent'));
+        $this->assertSame($before, array_filter(glob(sys_get_temp_dir() . '/crudit*') ?: [], 'is_file'));
     }
 
-    /** @return iterable<string, array{string, string}> */
-    public static function refusedLibraryFiles(): iterable
+    private function invoiceModels(): DataModelRegistry
     {
-        yield 'extension' => ['<?php echo 1;', 'script.php'];
-        yield 'unreadable image' => ['not an image', 'logo.png'];
-        yield 'unreadable font' => ['not a font', 'inter.ttf'];
-        yield 'unreadable svg' => ['<html></html>', 'stamp.svg'];
-    }
-
-    /**
-     * @dataProvider refusedLibraryFiles
-     */
-    #[DataProvider('refusedLibraryFiles')]
-    public function testStoreLibraryFileRefusesBadFiles(string $content, string $name): void
-    {
-        $file = $this->dir . 'upload';
-        file_put_contents($file, $content);
-
-        $this->expectException(\InvalidArgumentException::class);
-        $this->generator()->storeLibraryFile($this->dir, $file, $name);
-    }
-
-    public function testDataSource(): void
-    {
-        $models = new DataModelRegistry(
+        return new DataModelRegistry(
             [new Fixtures\InvoiceDataModel()],
             new ClassMetadataFactory(new AttributeLoader()),
             new DataExtractor(),
@@ -232,6 +197,11 @@ class CruditReportGeneratorTest extends TestCase
             null,
             new PropertyInfoExtractor([], [new PhpStanExtractor(), new ReflectionExtractor()]),
         );
+    }
+
+    public function testDataSource(): void
+    {
+        $models = $this->invoiceModels();
         // fake crudit: copies the template (second to last argument) and the data (last) to the output
         $generator = $this->generator('cat "${@: -2:1}" > "$4"; echo "---" >> "$4"; cat "${@: -1}" >> "$4"', $models);
         file_put_contents($this->dir . 'source.template.json', json_encode([

@@ -48,6 +48,9 @@ class PdfGenerator
 
         $pdf = new PdfMerger();
         $options = $this->options;
+        if ($model->getCode()) {
+            $options[CruditReportGenerator::OPTION_MODEL] = $model->getCode();
+        }
         if ($model->getDatasource()) {
             $options[CruditReportGenerator::OPTION_DATASOURCE] = $model->getDatasource();
         }

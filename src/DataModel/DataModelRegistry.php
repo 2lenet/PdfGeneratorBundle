@@ -8,12 +8,12 @@ use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactoryInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 /** Data sources of the crudit_report templates (CruditDataModelInterface services), by name. */
-final class DataModelRegistry
+class DataModelRegistry
 {
     /** @var array<string, CruditDataModelInterface>|null instantiated on first use */
     private ?array $models = null;
 
-    /** @var array<string, list<array<string, mixed>>> */
+    /** @var array<string, list<array<string, mixed>>> by data source and locale (translated labels) */
     private array $parameters = [];
 
     /**
@@ -21,12 +21,12 @@ final class DataModelRegistry
      *        PdfGenerator (BlGenerator…), which depends on this registry
      */
     public function __construct(
-        private iterable $sources,
-        private ClassMetadataFactoryInterface $serializerMetadata,
-        private DataExtractor $extractor,
-        private ?ManagerRegistry $doctrine = null,
-        private ?TranslatorInterface $translator = null,
-        private ?PropertyInfoExtractorInterface $propertyInfo = null,
+        protected iterable $sources,
+        protected ClassMetadataFactoryInterface $serializerMetadata,
+        protected DataExtractor $extractor,
+        protected ?ManagerRegistry $doctrine = null,
+        protected ?TranslatorInterface $translator = null,
+        protected ?PropertyInfoExtractorInterface $propertyInfo = null,
     ) {
     }
 
@@ -65,12 +65,13 @@ final class DataModelRegistry
      */
     public function getParameters(string $name): array
     {
-        if (!isset($this->parameters[$name])) {
+        $key = $name . '@' . $this->translator?->getLocale();
+        if (!isset($this->parameters[$key])) {
             $builder = new DataModelBuilder($this->serializerMetadata, $this->doctrine, $this->translator, $this->propertyInfo);
-            $this->parameters[$name] = $builder->describe($this->get($name)->getDataClass());
+            $this->parameters[$key] = $builder->describe($this->get($name)->getDataClass());
         }
 
-        return $this->parameters[$name];
+        return $this->parameters[$key];
     }
 
     /** Sample data of the data source, extracted according to its parameters; null: no sample. */

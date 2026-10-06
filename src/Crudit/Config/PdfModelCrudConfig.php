@@ -32,7 +32,7 @@ class PdfModelCrudConfig extends AbstractCrudConfig
     public function __construct(
         PdfModelDatasource $datasource,
         #[Autowire(param: 'lle.pdf.crudit.enabled')]
-        private bool $cruditReport = false,
+        protected bool $cruditReport = false,
     ) {
         $this->datasource = $datasource;
     }

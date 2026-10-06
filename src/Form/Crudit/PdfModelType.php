@@ -19,9 +19,9 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 class PdfModelType extends AbstractType
 {
     public function __construct(
-        private PdfGenerator $pdfGenerator,
-        private CruditReportGenerator $cruditReportGenerator,
-        private DataModelRegistry $dataModels,
+        protected PdfGenerator $pdfGenerator,
+        protected CruditReportGenerator $cruditReportGenerator,
+        protected DataModelRegistry $dataModels,
     ) {
     }
 
@@ -57,6 +57,11 @@ class PdfModelType extends AbstractType
         // A crudit_report template can be created without file: it starts from an empty template, to edit in the designer.
         $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
             $model = $event->getData();
+
+            // a data source only applies to a crudit_report template
+            if ($model instanceof PdfModelInterface && ($model->getType() ?: $this->pdfGenerator->getDefaultGenerator()) !== CruditReportGenerator::getName()) {
+                $model->setDatasource(null);
+            }
 
             if (
                 $model instanceof PdfModelInterface
