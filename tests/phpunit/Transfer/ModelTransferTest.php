@@ -26,6 +26,8 @@ class ModelTransferTest extends TestCase
         mkdir($this->dir . '/target', 0o777, true);
 
         $config = ORMSetup::createAttributeMetadataConfiguration([dirname(__DIR__, 3) . '/src/Entity'], true);
+        // ORM ≥ 3.5 only
+        // @phpstan-ignore function.alreadyNarrowedType
         if (method_exists($config, 'enableNativeLazyObjects')) {
             $config->enableNativeLazyObjects(true);
         }

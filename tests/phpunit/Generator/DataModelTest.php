@@ -8,7 +8,7 @@ use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\InvoiceData;
 use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\Untyped;
 use Lle\PdfGeneratorBundle\Tests\Generator\Fixtures\UntypedList;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
@@ -22,7 +22,7 @@ class DataModelTest extends TestCase
             new ClassMetadataFactory(new AttributeLoader()),
             null,
             null,
-            new PropertyInfoExtractor([], [new PhpDocExtractor(), new ReflectionExtractor()]),
+            new PropertyInfoExtractor([], [new PhpStanExtractor(), new ReflectionExtractor()]),
         );
     }
 

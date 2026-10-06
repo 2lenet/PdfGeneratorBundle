@@ -21,8 +21,8 @@ interface CruditDataModelInterface
     public function getLabel(): string;
 
     /**
-     * Class of the data sent to the template: typed public properties (values, entities, data classes, lists with
-     * @var list<Class>), refined if needed by the DataModel\Attribute attributes.
+     * Class of the data sent to the template: typed public properties (values, entities, data classes, lists typed
+     * in PHPDoc as list<Class>), refined if needed by the DataModel\Attribute attributes.
      *
      * @return class-string
      */

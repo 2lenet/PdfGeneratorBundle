@@ -3,6 +3,7 @@
 namespace Lle\PdfGeneratorBundle\Transfer;
 
 use Doctrine\DBAL\Connection;
+use Doctrine\DBAL\Schema\Column;
 use Doctrine\ORM\EntityManagerInterface;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
 
@@ -164,7 +165,13 @@ class ModelTransfer
     private function checkRows(array $data): array
     {
         [$table] = $this->table();
-        $columns = array_keys($this->em->getConnection()->createSchemaManager()->listTableColumns($table));
+        $schema = $this->em->getConnection()->createSchemaManager();
+        // introspectTableColumnsByUnquotedName() since DBAL 4.3, listTableColumns() (deprecated) before
+        // @phpstan-ignore function.alreadyNarrowedType
+        $columns = method_exists($schema, 'introspectTableColumnsByUnquotedName')
+            ? array_map(fn (Column $c): string => $c->getObjectName()->getIdentifier()->getValue(), $schema->introspectTableColumnsByUnquotedName($table))
+            // @phpstan-ignore method.deprecated
+            : array_keys($schema->listTableColumns($table));
         $known = array_map('strtolower', $columns);
         $ignored = [];
 

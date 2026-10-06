@@ -10,7 +10,7 @@ use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor;
+use Symfony\Component\PropertyInfo\Extractor\PhpStanExtractor;
 use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractor;
 use Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory;
@@ -230,7 +230,7 @@ class CruditReportGeneratorTest extends TestCase
             new DataExtractor(),
             null,
             null,
-            new PropertyInfoExtractor([], [new PhpDocExtractor(), new ReflectionExtractor()]),
+            new PropertyInfoExtractor([], [new PhpStanExtractor(), new ReflectionExtractor()]),
         );
         // fake crudit: copies the template (second to last argument) and the data (last) to the output
         $generator = $this->generator('cat "${@: -2:1}" > "$4"; echo "---" >> "$4"; cat "${@: -1}" >> "$4"', $models);

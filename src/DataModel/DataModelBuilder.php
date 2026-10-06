@@ -97,7 +97,7 @@ final class DataModelBuilder
         if (!preg_match(self::IDENTIFIER, $name)) {
             throw new \InvalidArgumentException($where . ': invalid parameter name');
         }
-        $label = $this->attribute($property, CruditLabel::class)?->label ?? $this->label($name);
+        $label = $this->attribute($property, CruditLabel::class)->label ?? $this->label($name);
         $fields = $this->attribute($property, CruditFields::class)?->fields;
 
         $forced = $this->attribute($property, CruditImage::class) ? 'image' : $this->attribute($property, CruditType::class)?->type;
@@ -172,10 +172,13 @@ final class DataModelBuilder
     private function itemClass(string $class, string $property, string $where): string
     {
         $item = null;
+        // getType() since Symfony 7.1, getTypes() (removed in Symfony 8) before
+        // @phpstan-ignore function.alreadyNarrowedType
         if ($this->propertyInfo && method_exists($this->propertyInfo, 'getType')) {
             $type = $this->propertyInfo->getType($class, $property);
             $item = $type ? $this->collectionClass($type) : null;
         } elseif ($this->propertyInfo) {
+            // @phpstan-ignore method.notFound
             foreach ($this->propertyInfo->getTypes($class, $property) ?? [] as $type) {
                 foreach ($type->getCollectionValueTypes() as $value) {
                     $item ??= $value->getClassName();

@@ -114,8 +114,8 @@ Fields of an entity:
 
 A property without type, or a list without item class, is an error that names it
 (`BlData::$bls: unknown item type, to be given in PHPDoc`). The item class is read by the Symfony
-PropertyInfo component (`property_info` service), which needs `phpdocumentor/reflection-docblock` or
-`phpstan/phpdoc-parser`.
+PropertyInfo component (`property_info` service), which needs `phpstan/phpdoc-parser` (installed with most Symfony
+projects). `phpdocumentor/reflection-docblock` alone reads `list<Class>` but not `iterable<Class>`.
 
 ## Rendering
 

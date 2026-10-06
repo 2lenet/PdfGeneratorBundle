@@ -14,7 +14,7 @@ class InvoiceData
 
     public function __construct(
         public Invoice $invoice,
-        /** @var list<Line> */
+        /** @var iterable<Line> */
         #[CruditFields(['label'])]
         public iterable $lines,
         /** Doctrine decimal: a string */
