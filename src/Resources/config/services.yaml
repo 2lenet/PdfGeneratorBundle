@@ -15,6 +15,27 @@ services:
     Lle\PdfGeneratorBundle\Generator\TcpdfGenerator:
         tags: ['lle.pdf.generator']
 
+    Lle\PdfGeneratorBundle\Generator\CruditReportGenerator:
+        tags: ['lle.pdf.generator']
+
+    # data sources of the crudit_report templates (CruditDataModelInterface, registered by autoconfigure)
+    Lle\PdfGeneratorBundle\DataModel\DataExtractor: ~
+
+    Lle\PdfGeneratorBundle\DataModel\DataModelRegistry:
+        arguments:
+            $sources: !tagged_iterator lle.pdf.crudit_data_model
+            $serializerMetadata: '@serializer.mapping.class_metadata_factory'
+            $doctrine: '@?doctrine'
+            $translator: '@?translator'
+            $propertyInfo: '@?property_info'
+
+    Lle\PdfGeneratorBundle\Library\TemplateLibrary: ~
+
+    Lle\PdfGeneratorBundle\Transfer\ModelTransfer: ~
+
+    Lle\PdfGeneratorBundle\Routing\CruditRouteLoader:
+        tags: ['routing.loader']
+
     Lle\PdfGeneratorBundle\Generator\PdfGenerator:
         arguments: ["@doctrine.orm.default_entity_manager",  '@kernel','@parameter_bag', !tagged_iterator lle.pdf.generator]
 
@@ -22,3 +43,5 @@ services:
 
     Lle\PdfGeneratorBundle\Controller\:
         resource: '../../Controller'
+        # admin screen: loaded by services_crudit.yaml, only when crudit-bundle is installed
+        exclude: '../../Controller/Crudit/'

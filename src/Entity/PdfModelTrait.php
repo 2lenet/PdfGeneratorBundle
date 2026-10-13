@@ -25,8 +25,9 @@ trait PdfModelTrait
     #[ORM\Column(name: "type", type: "string", length: 255, nullable: true)]
     private ?string $type = null;
 
-    #[ORM\Column(name: "datamodel", type: "string", length: 255, nullable: true)]
-    private ?string $datamodel = null;
+    /** Data source of a crudit_report template (CruditDataModelInterface::getName()), or null. */
+    #[ORM\Column(name: "datasource", type: "string", length: 64, nullable: true)]
+    private ?string $datasource = null;
 
     #[ORM\Column(name: "description", type: "text", nullable: true)]
     private ?string $description = null;
@@ -36,9 +37,6 @@ trait PdfModelTrait
 
     #[ORM\Column(type: "datetime", nullable: true)]
     private ?\DateTime $updatedAt = null;
-
-    #[ORM\Column(type: "boolean", nullable: true)]
-    private ?bool $checkFile = null;
 
     public function __toString(): string
     {
@@ -128,7 +126,6 @@ trait PdfModelTrait
 
         if ($file) {
             $this->setUpdatedAt(new \DateTime());
-            $this->checkFile = null;
         }
 
         return $this;
@@ -146,26 +143,14 @@ trait PdfModelTrait
         return $this;
     }
 
-    public function getCheckFile(): ?bool
+    public function getDatasource(): ?string
     {
-        return $this->checkFile;
+        return $this->datasource;
     }
 
-    public function setCheckFile(?bool $checkFile): self
+    public function setDatasource(?string $datasource): self
     {
-        $this->checkFile = $checkFile;
-
-        return $this;
-    }
-
-    public function getDatamodel(): ?string
-    {
-        return $this->datamodel;
-    }
-
-    public function setDatamodel(?string $datamodel): self
-    {
-        $this->datamodel = $datamodel;
+        $this->datasource = $datasource;
 
         return $this;
     }

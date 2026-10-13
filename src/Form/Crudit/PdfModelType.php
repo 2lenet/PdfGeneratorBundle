@@ -1,0 +1,111 @@
+<?php
+
+namespace Lle\PdfGeneratorBundle\Form\Crudit;
+
+use Lle\CruditBundle\Form\Type\FileType;
+use Lle\PdfGeneratorBundle\Crudit\Config\PdfModelCrudConfig;
+use Lle\PdfGeneratorBundle\DataModel\DataModelRegistry;
+use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
+use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
+use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
+use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormEvent;
+use Symfony\Component\Form\FormEvents;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\OptionsResolver\OptionsResolver;
+
+/** Form of the PDF templates admin screen. */
+class PdfModelType extends AbstractType
+{
+    public function __construct(
+        protected PdfGenerator $pdfGenerator,
+        protected CruditReportGenerator $cruditReportGenerator,
+        protected DataModelRegistry $dataModels,
+    ) {
+    }
+
+    public function buildForm(FormBuilderInterface $builder, array $options): void
+    {
+        $types = $this->pdfGenerator->getTypes();
+
+        $builder->add('libelle', null, ['label' => 'field.libelle']);
+        $builder->add('code', null, ['label' => 'field.code']);
+        $this->addTypeField($builder, $types, null);
+        // a template of several resources (type "word_to_pdf,tcpdf", one per file of the path) keeps its type: it is
+        // added to the choices, the screen does not create such templates (one file only)
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $event) use ($types): void {
+            $model = $event->getData();
+            if ($model instanceof PdfModelInterface && $model->getType() && !in_array($model->getType(), $types, true)) {
+                $this->addTypeField($event->getForm(), $types, $model->getType());
+            }
+        });
+        // crudit_report: data described by the PHP (read-only parameters in the designer, always up to date),
+        // or empty: structure specific to the template, defined in the designer
+        if (in_array(CruditReportGenerator::getName(), $types, true)) {
+            $builder->add('datasource', ChoiceType::class, [
+                'label' => 'field.datasource',
+                'help' => 'help.datasource',
+                'choices' => $this->dataModels->getChoices(),
+                'choice_translation_domain' => false,
+                'required' => false,
+                'placeholder' => 'placeholder.datasource',
+            ]);
+        }
+        $builder->add('file', FileType::class, ['label' => 'field.file']);
+        $builder->add('description', null, ['label' => 'field.description']);
+
+        // A crudit_report template can be created without file: it starts from an empty template, to edit in the designer.
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $event): void {
+            $model = $event->getData();
+
+            // a data source only applies to a crudit_report template
+            if ($model instanceof PdfModelInterface && ($model->getType() ?: $this->pdfGenerator->getDefaultGenerator()) !== CruditReportGenerator::getName()) {
+                $model->setDatasource(null);
+            }
+
+            if (
+                $model instanceof PdfModelInterface
+                && ($model->getType() ?: $this->pdfGenerator->getDefaultGenerator()) === CruditReportGenerator::getName()
+                && !$model->getFile()
+                && !$model->getPath()
+                && $event->getForm()->isValid()
+            ) {
+                $model->setPath($this->cruditReportGenerator->createTemplate(
+                    $this->pdfGenerator->getPath(),
+                    (string)$model->getLibelle(),
+                ));
+                $model->setUpdatedAt(new \DateTime());
+            }
+        });
+    }
+
+    /**
+     * Type of the template; empty: default type (lle_pdf_generator.default_generator), the existing templates do not
+     * change.
+     *
+     * @param FormBuilderInterface|FormInterface $form
+     * @param list<string> $types
+     */
+    private function addTypeField(FormBuilderInterface|FormInterface $form, array $types, ?string $current): void
+    {
+        $choices = array_combine($types, $types);
+        if ($current !== null) {
+            $choices[$current] = $current;
+        }
+
+        $form->add('type', ChoiceType::class, [
+            'label' => 'field.type',
+            'choices' => $choices,
+            'choice_translation_domain' => false,
+            'required' => false,
+            'placeholder' => $this->pdfGenerator->getDefaultGenerator(),
+        ]);
+    }
+
+    public function configureOptions(OptionsResolver $resolver): void
+    {
+        $resolver->setDefaults(['translation_domain' => PdfModelCrudConfig::TRANSLATION_DOMAIN]);
+    }
+}

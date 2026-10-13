@@ -32,6 +32,10 @@ interface PdfModelInterface
 
     public function setType(?string $type): self;
 
+    public function getDatasource(): ?string;
+
+    public function setDatasource(?string $datasource): self;
+
     public function getFile(): ?File;
 
     public function setFile(?File $file): self;

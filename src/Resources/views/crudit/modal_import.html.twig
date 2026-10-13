@@ -1,0 +1,32 @@
+{% extends '@LleCrudit/modal/_base_modal.html.twig' %}
+
+{% block header %}
+    {{ 'message.pdfmodel_import_title'|trans({}, 'PdfGeneratorBundle') }}
+{% endblock %}
+
+{% block body %}
+    <form
+        id="form_{{ id }}"
+        method="POST"
+        enctype="multipart/form-data"
+        action="{{ path('lle_pdf_generator_models_import') }}"
+    >
+        <div class="alert alert-warning">{{ 'message.pdfmodel_import_warning'|trans({}, 'PdfGeneratorBundle') }}</div>
+        <input type="hidden" name="_token" value="{{ csrf_token(constant('Lle\\PdfGeneratorBundle\\Controller\\ModelTransferController::CSRF_TOKEN_ID')) }}">
+        {# same structure as the Crudit file fields, whose "Browse" button is absolutely positioned #}
+        <div class="form-floating">
+            <div class="vich-file vich-file-full">
+                <input type="file" name="archive" accept=".zip,application/zip" class="form-control" required>
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block footer %}
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        {{ 'crudit.modal.cancel'|trans({}, 'LleCruditBundle') }}
+    </button>
+    <button type="submit" class="btn btn-danger" form="form_{{ id }}">
+        {{ 'action.pdfmodel_import'|trans({}, 'PdfGeneratorBundle') }}
+    </button>
+{% endblock %}

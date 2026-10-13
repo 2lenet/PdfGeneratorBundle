@@ -8,19 +8,17 @@ class TcpdfGenerator extends AbstractPdfGenerator
 {
     public function generate(string $source, iterable $params, string $savePath, array $options = []): void
     {
-        $reflex = new \ReflectionClass($source);
-
-        $pdf = $reflex->newInstance();
-
-        if ($pdf instanceof Pdf) {
-            $pdf->setData($params);
-            $pdf->setRootPath($this->pdfPath);
-            $pdf->initiate();
-            $pdf->generate();
-            $pdf->setTitle($pdf->title());
-        } else {
-            throw new \Exception('PDF GENERATOR ERROR: ressource ' . $source . ' n\'est pas une class PDF');
+        // checked before instantiating: the path of a template must not create any class of the application
+        if (!is_subclass_of($source, Pdf::class)) {
+            throw new \Exception('PDF GENERATOR ERROR: resource ' . $source . ' is not a ' . Pdf::class . ' class');
         }
+
+        $pdf = (new \ReflectionClass($source))->newInstance();
+        $pdf->setData($params);
+        $pdf->setRootPath($this->pdfPath);
+        $pdf->initiate();
+        $pdf->generate();
+        $pdf->setTitle($pdf->title());
 
         $pdf->output($savePath, 'F');
     }

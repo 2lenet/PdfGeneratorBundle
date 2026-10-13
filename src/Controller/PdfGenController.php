@@ -2,86 +2,57 @@
 
 namespace Lle\PdfGeneratorBundle\Controller;
 
-use Doctrine\ORM\EntityManagerInterface;
+use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Generator\PdfGenerator;
+use Lle\PdfGeneratorBundle\Security\PdfModelRoles;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
-use Symfony\Component\HttpFoundation\Session\Session;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
-#[Route('/admin/pdfgen')]
+/** Download and preview of a PDF template (roles of the PDFMODEL screen). */
+#[Route('/pdfmodel')]
 class PdfGenController extends AbstractController
 {
     public function __construct(
-        private EntityManagerInterface $em,
-        private PdfGenerator $pdfGenerator,
+        protected PdfGenerator $pdfGenerator,
     ) {
     }
 
-    #[Route('/downloadModele', name: 'lle_pdf_generator_download_model')]
-    public function downloadModele(Request $request): Response
+    #[Route('/download/{id}', name: 'lle_pdf_generator_download_model', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function downloadModele(int $id): Response
     {
-        $model = $this->pdfGenerator->getRepository()->find($request->query->get('id'));
-
-        if ($model) {
-            $response = new BinaryFileResponse($this->pdfGenerator->getPath() . $model->getPath());
-
-            return $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, $model->getPath());
-        } else {
-            throw new NotFoundHttpException();
+        $this->denyAccessUnlessGranted(PdfModelRoles::SHOW);
+        $model = $this->getModel($id);
+        // the file must stay in the templates folder (path imported from another platform…)
+        $root = realpath($this->pdfGenerator->getPath());
+        $file = realpath($this->pdfGenerator->getPath() . $model->getPath());
+        if (!$model->getPath() || !$root || !$file || !is_file($file) || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)) {
+            throw $this->createNotFoundException('File of the template ' . $model->getCode() . ' not found');
         }
+
+        $response = $this->file($file);
+
+        return $response->setContentDisposition(ResponseHeaderBag::DISPOSITION_ATTACHMENT, (string)$model->getPath());
     }
 
-    #[Route('/showModele', name: 'lle_pdf_generator_show_model')]
-    public function showModele(Request $request): Response
+    /** PDF of the template rendered without data (test data for a crudit_report template). */
+    #[Route('/pdf/{id}', name: 'lle_pdf_generator_show_model', requirements: ['id' => '\d+'], methods: ['GET'])]
+    public function showModele(int $id): Response
     {
-        $model = $this->pdfGenerator->getRepository()->find($request->query->get('id'));
+        $this->denyAccessUnlessGranted(PdfModelRoles::SHOW);
 
-        if ($model) {
-            return $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
-        } else {
-            throw new NotFoundHttpException();
-        }
+        return $this->pdfGenerator->generateResponse((string)$this->getModel($id)->getCode(), [[]]);
     }
 
-    #[Route('/checkModele', name: 'lle_pdf_generator_check_model')]
-    public function checkModele(Request $request): RedirectResponse
+    private function getModel(int $id): PdfModelInterface
     {
-        /** @var Session $session */
-        $session = $request->getSession();
-        $flashBag = $session->getFlashBag();
+        $model = $this->pdfGenerator->getRepository()->find($id);
 
-        $model = $this->pdfGenerator->getRepository()->find($request->query->get('id'));
-
-        if ($model) {
-            $model->setCheckFile(true);
-
-            try {
-                $this->pdfGenerator->generateResponse($model->getCode(), [[]]);
-            } catch (\Exception $e) {
-                $model->setCheckFile(false);
-            }
-
-            $this->em->persist($model);
-            $this->em->flush();
-
-            if ($model->getCheckFile()) {
-                $flashBag->add('success', 'Fichier valider');
-            } else {
-                $flashBag->add(
-                    'error',
-                    'Une erreur est survenue, il est impossible de générer un PDF avec les données actuel de ce modèle'
-                );
-            }
-
-            return new RedirectResponse($request->server->get('HTTP_REFERER'));
-        } else {
-            throw new NotFoundHttpException();
+        if (!$model instanceof PdfModelInterface) {
+            throw $this->createNotFoundException('Template ' . $id . ' not found');
         }
+
+        return $model;
     }
 }

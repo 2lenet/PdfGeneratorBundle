@@ -1,0 +1,16 @@
+# Admin screen of the PDF templates: loaded by LlePdfGeneratorExtension only when crudit-bundle is installed.
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    Lle\PdfGeneratorBundle\Crudit\:
+        resource: '../../Crudit/'
+
+    Lle\PdfGeneratorBundle\Controller\Crudit\:
+        resource: '../../Controller/Crudit/'
+        tags: ['controller.service_arguments']
+
+    Lle\PdfGeneratorBundle\Form\Crudit\:
+        resource: '../../Form/Crudit/'
