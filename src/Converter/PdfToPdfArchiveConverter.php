@@ -34,7 +34,7 @@ class PdfToPdfArchiveConverter
         $xmlStreamReader = StreamReader::createByString($zugferdXml);
 
         // Attach the XML to the PDF
-        $zugferdPdf->attachStreamReader($xmlStreamReader, self::ZUGFERD_XML_FILE_NAME);
+        $zugferdPdf->attachStreamReader($xmlStreamReader, static::ZUGFERD_XML_FILE_NAME);
 
         // XML added for PDF/A validation
         $zugferdPdf->addXMLMetadata(
@@ -59,7 +59,7 @@ class PdfToPdfArchiveConverter
     protected function prepareZugferdMetadata(array $metadata): string
     {
         $metadata = [
-            'xmlName' => self::ZUGFERD_XML_FILE_NAME,
+            'xmlName' => static::ZUGFERD_XML_FILE_NAME,
             'version' => $metadata['version'] ?? '2.0',
             'conformanceLevel' => $metadata['conformanceLevel'] ?? 'BASIC',
             'title' => $metadata['title'] ?? 'zugferd-invoice',
