@@ -32,6 +32,8 @@ action:
     pdfmodel_pdf: "Show the PDF"
     pdfmodel_export: "Export the templates"
     pdfmodel_import: "Import templates"
+    pdfmodel_version_download: "Download this version"
+    pdfmodel_version_restore: "Restore"
 
 message:
     pdfmodel_import_title: "Import templates"
@@ -71,3 +73,21 @@ flash:
     pdfmodel_import_failed: "Templates import failed, nothing was changed. The detail is in the application log."
     pdfmodel_import_backup: "Templates import failed. The old files %files% could not be put back: they are kept in %backup%, to copy back by hand. The detail is in the application log."
     pdfmodel_zip_missing: "Export and import of the templates unavailable: the zip PHP extension is not installed."
+    pdfmodel_version_restored: "Version %number% restored: it is now the file of the template."
+    pdfmodel_version_csrf: "Restoration refused: invalid security token, reload the page."
+    pdfmodel_version_failed: "Restoration failed, the template was not changed. The detail is in the application log."
+
+tab:
+    pdfmodel_versions: "File history"
+
+version:
+    none: "No file recorded for this template."
+    number: "Version"
+    file: "File"
+    size: "Size"
+    size_kb: "%size% KB"
+    created_at: "Uploaded on"
+    created_by: "By"
+    current: "Latest version"
+    restored_from: "Restoration of version %number%"
+    unknown_author: "Unknown"

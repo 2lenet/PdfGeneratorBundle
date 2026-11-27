@@ -2,6 +2,10 @@ pdf_routes:
     resource: '../../Controller/PdfGenController.php'
     type: attribute
 
+version_routes:
+    resource: '../../Controller/PdfModelVersionController.php'
+    type: attribute
+
 model_transfer_routes:
     resource: '../../Controller/ModelTransferController.php'
     type: attribute

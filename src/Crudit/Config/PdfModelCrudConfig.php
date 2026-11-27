@@ -10,6 +10,7 @@ use Lle\CruditBundle\Dto\Field\Field;
 use Lle\CruditBundle\Dto\Icon;
 use Lle\CruditBundle\Dto\Path;
 use Lle\PdfGeneratorBundle\Crudit\Datasource\PdfModelDatasource;
+use Lle\PdfGeneratorBundle\Crudit\PdfModelVersionTab;
 use Lle\PdfGeneratorBundle\Form\Crudit\PdfModelType;
 use Lle\PdfGeneratorBundle\Entity\PdfModelInterface;
 use Lle\PdfGeneratorBundle\Generator\CruditReportGenerator;
@@ -129,6 +130,12 @@ class PdfModelCrudConfig extends AbstractCrudConfig
             ->setRole(PdfModelRoles::SHOW);
 
         return $actions;
+    }
+
+    /** History of the files of the template. */
+    public function getTabs(): array
+    {
+        return [PdfModelVersionTab::LABEL => PdfModelVersionTab::new()];
     }
 
     protected function getFormType(string $pageKey): ?string

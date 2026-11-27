@@ -1,5 +1,35 @@
 # Upgrade guide
 
+## To 5.1 (history of the template files)
+
+### Database
+
+New table `lle_pdf_model_version` (`Lle\PdfGeneratorBundle\Entity\PdfModelVersion`): generate the migration with
+`bin/console make:migration`.
+
+### Existing templates
+
+Create the first version of the templates uploaded before the history:
+
+```bash
+bin/console lle:pdf-generator:init-versions
+```
+
+### Roles
+
+New role `ROLE_PDFMODEL_ACTION_RESTORE` (`PdfModelRoles::RESTORE`), to restore a previous file: declare it in the
+credential warmup of the project, then give it to the groups.
+
+### Your own screen
+
+With `screens.enabled: false`, add the "File history" tab to your screen: see
+[History of the template files](versions.md#show-page).
+
+### Dependencies
+
+`doctrine/doctrine-bundle` and `symfony/security-core` are now required (listener of the uploads, author of a
+version).
+
 ## To 5.0 (Crudit Report, admin screen)
 
 ### Database

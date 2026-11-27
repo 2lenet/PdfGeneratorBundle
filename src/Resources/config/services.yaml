@@ -33,6 +33,18 @@ services:
 
     Lle\PdfGeneratorBundle\Transfer\ModelTransfer: ~
 
+    # history of the template files (PdfModelVersion)
+    Lle\PdfGeneratorBundle\Version\:
+        resource: '../../Version/'
+
+    Lle\PdfGeneratorBundle\Version\VersionRecorder:
+        arguments:
+            $tokenStorage: '@?security.token_storage'
+
+    Lle\PdfGeneratorBundle\EventListener\PdfModelVersionListener: ~
+
+    Lle\PdfGeneratorBundle\Command\InitVersionsCommand: ~
+
     Lle\PdfGeneratorBundle\Routing\CruditRouteLoader:
         tags: ['routing.loader']
 

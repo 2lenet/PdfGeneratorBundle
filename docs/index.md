@@ -13,6 +13,7 @@ Generate PDF documents from templates stored in your application, and manage tho
 - [Generate documents](usage.md)
 - [Templates in database](models.md)
 - [Admin screen (with Crudit Bundle)](admin-screen.md)
+- [History of the template files](versions.md)
 - [Copy the templates from one platform to another](transfer.md)
 - [Sign documents](signature.md)
 - [List of available commands](commands.md)
