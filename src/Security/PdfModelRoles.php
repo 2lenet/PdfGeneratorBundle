@@ -19,4 +19,7 @@ final class PdfModelRoles
 
     /** Import of an archive: replaces all the templates and their files. */
     public const IMPORT = 'ROLE_PDFMODEL_IMPORT';
+
+    /** Restoration of a previous file of a template (history of the files: PdfModelVersion). */
+    public const RESTORE = 'ROLE_PDFMODEL_ACTION_RESTORE';
 }

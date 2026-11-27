@@ -8,7 +8,9 @@ nothing to write in the project:
 - "Data source" field for `crudit_report` templates (see [Data sources](data-sources.md));
 - actions "Edit in the designer" (`crudit_report` templates), "Download the template", "Show the PDF" (rendered
   without data: test data, or the sample of the data source);
-- list actions "Export the templates" and "Import templates" (see [Copy the templates](transfer.md)).
+- list actions "Export the templates" and "Import templates" (see [Copy the templates](transfer.md));
+- "File history" tab on the show page: download or restore a previous file (see
+  [History of the template files](versions.md)).
 
 The "Data source" field and the "Edit in the designer" action appear only when `crudit.enabled` is `true`.
 
@@ -36,9 +38,11 @@ The screen is named `PDFMODEL`. All the routes of the bundle are under `/pdfmode
 | `ROLE_PDFMODEL_SHOW` | `lle_pdf_generator_download_model` (GET `/pdfmodel/download/{id}`), `lle_pdf_generator_show_model` (GET `/pdfmodel/pdf/{id}`) |
 | `ROLE_PDFMODEL_DESIGNER` | Designer routes (see [The Crudit Report designer](crudit-designer.md#routes)) |
 | `ROLE_PDFMODEL_EXPORT` / `ROLE_PDFMODEL_IMPORT` | `lle_pdf_generator_models_export` / `_import` (GET / POST `/pdfmodel/archive`) |
+| `ROLE_PDFMODEL_SHOW` / `ROLE_PDFMODEL_ACTION_RESTORE` | `lle_pdf_generator_version_download` (GET `/pdfmodel/version/{id}`) / `lle_pdf_generator_version_restore` (POST `/pdfmodel/version/{id}/restore`) |
 
 With [CredentialBundle](https://github.com/2lenet/CredentialBundle), `bin/console lle:credential:warmup` registers
-them; give them to the groups. Without it, add them to the role hierarchy of the project.
+them, except `ROLE_PDFMODEL_ACTION_RESTORE` (not the role of a Crudit action): declare it in the credential warmup of
+the project. Give them to the groups. Without CredentialBundle, add them to the role hierarchy of the project.
 
 ## Keep your own screen
 

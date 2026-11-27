@@ -1,0 +1,56 @@
+{# History of the files of a template (PdfModelVersionController::history) #}
+{% set domain = 'PdfGeneratorBundle' %}
+{% if versions is empty %}
+    <p class="text-muted">{{ 'version.none'|trans({}, domain) }}</p>
+{% else %}
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>{{ 'version.number'|trans({}, domain) }}</th>
+                    <th>{{ 'version.file'|trans({}, domain) }}</th>
+                    <th class="text-end">{{ 'version.size'|trans({}, domain) }}</th>
+                    <th>{{ 'version.created_at'|trans({}, domain) }}</th>
+                    <th>{{ 'version.created_by'|trans({}, domain) }}</th>
+                    <th class="text-end">{{ 'crudit.action'|trans({}, domain) }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for version in versions %}
+                    {% set current = loop.first %}{# the last upload or restoration #}
+                    <tr>
+                        <td>
+                            v{{ version.number }}
+                            {% if current %}
+                                <span class="badge bg-success ms-1">{{ 'version.current'|trans({}, domain) }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {{ version.originalName }}
+                            {% if version.restoredFrom %}
+                                <div class="small text-muted">{{ 'version.restored_from'|trans({'%number%': version.restoredFrom}, domain) }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">{{ 'version.size_kb'|trans({'%size%': (version.size / 1024)|number_format(1, ',', ' ')}, domain) }}</td>
+                        <td class="text-nowrap">{{ version.createdAt|date('d/m/Y H:i') }}</td>
+                        <td>{{ version.createdBy ?? 'version.unknown_author'|trans({}, domain) }}</td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-primary btn-sm" href="{{ path('lle_pdf_generator_version_download', {id: version.id}) }}"
+                               title="{{ 'action.pdfmodel_version_download'|trans({}, domain) }}">
+                                <i class="fas fa-file-download"></i>
+                            </a>
+                            {% if not current and is_granted(restoreRole) %}
+                                <form class="d-inline" method="POST" action="{{ path('lle_pdf_generator_version_restore', {id: version.id}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token(csrfTokenId) }}">
+                                    <button type="submit" class="btn btn-warning btn-sm" title="{{ 'action.pdfmodel_version_restore'|trans({}, domain) }}">
+                                        <i class="fas fa-undo"></i> {{ 'action.pdfmodel_version_restore'|trans({}, domain) }}
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}

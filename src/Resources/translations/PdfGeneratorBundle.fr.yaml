@@ -32,6 +32,8 @@ action:
     pdfmodel_pdf: "Voir le PDF"
     pdfmodel_export: "Exporter les modèles"
     pdfmodel_import: "Importer des modèles"
+    pdfmodel_version_download: "Télécharger cette version"
+    pdfmodel_version_restore: "Restaurer"
 
 message:
     pdfmodel_import_title: "Importer des modèles"
@@ -71,3 +73,21 @@ flash:
     pdfmodel_import_failed: "Échec de l'import des modèles, rien n'a été modifié. Le détail est dans le journal de l'application."
     pdfmodel_import_backup: "Échec de l'import des modèles. Les anciens fichiers %files% n'ont pas pu être remis en place : ils sont gardés dans %backup%, à recopier à la main. Le détail est dans le journal de l'application."
     pdfmodel_zip_missing: "Export et import des modèles indisponibles : l'extension PHP zip n'est pas installée."
+    pdfmodel_version_restored: "Version %number% restaurée : c'est maintenant le fichier du modèle."
+    pdfmodel_version_csrf: "Restauration refusée : jeton de sécurité invalide, rechargez la page."
+    pdfmodel_version_failed: "Échec de la restauration, le modèle n'a pas été modifié. Le détail est dans le journal de l'application."
+
+tab:
+    pdfmodel_versions: "Historique des fichiers"
+
+version:
+    none: "Aucun fichier enregistré pour ce modèle."
+    number: "Version"
+    file: "Fichier"
+    size: "Taille"
+    size_kb: "%size% Ko"
+    created_at: "Envoyé le"
+    created_by: "Par"
+    current: "Dernière version"
+    restored_from: "Restauration de la version %number%"
+    unknown_author: "Inconnu"
